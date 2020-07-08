@@ -206,9 +206,9 @@ export default {
     // }
     if (this.deviceSelectorOptions[0] != null) {
       this.tmpDeviceSelectorValue = this.deviceSelectorOptions[0].value;
-      this.propertySelectorOptions = (
-        await getAffiliateFields(this.tmpDeviceSelectorValue)
-      ).data.d;
+      this.propertySelectorOptions = (await getAffiliateFields(
+        this.tmpDeviceSelectorValue
+      )).data.d;
       if (this.propertySelectorOptions[0] != null) {
         this.tmpPropertySelectorValue.push(
           this.propertySelectorOptions[0].fieldId
@@ -273,19 +273,15 @@ export default {
         this.deviceSelectorValue = this.tmpDeviceSelectorValue;
         this.propertySelectorValue = this.tmpPropertySelectorValue;
         setTimeout(async () => {
-          let result = (
-            await getDeviceMultiPropertyData(this.deviceSelectorValue, {
+          let result = (await getDeviceMultiPropertyData(
+            this.deviceSelectorValue,
+            {
               str: this.propertySelectorValue
-            })
-          ).data.d;
+            }
+          )).data.d;
           this.setChart(result);
           // this.chart.setOption({xAxis: [{data: result.xAxis}], series: [{data: result.series}]});
         }, 1000);
-        // this.pollInterval = setInterval(async () => {
-        //   let result = (await getDeviceMultiPropertyData(this.deviceSelectorValue, {str: this.propertySelectorValue})).data.d;
-        //   this.setChart(result);
-        //   // this.chart.setOption({xAxis: [{data: result.xAxis}], series: [{data: result.series}]});
-        // }, 10000);
         this.initChart();
       }
       this.chartLoading = false;
@@ -388,9 +384,9 @@ export default {
       }
     },
     async deviceChange() {
-      this.propertySelectorOptions = (
-        await getAffiliateFields(this.tmpDeviceSelectorValue)
-      ).data.d;
+      this.propertySelectorOptions = (await getAffiliateFields(
+        this.tmpDeviceSelectorValue
+      )).data.d;
       this.tmpPropertySelectorValue = [];
       this.searchLineChartData();
     },
@@ -403,14 +399,33 @@ export default {
       this.chartType = "bar";
       this.searchLineChartData();
       this.lineChecked = false;
+    },
+    dataRefreh() {
+      // 计时器正在进行中，退出函数
+      if (this.intervalId != null) {
+        return;
+      }
+      // 计时器为空，操作
+      this.intervalId = setInterval(async () => {
+        let result = (await getDeviceMultiPropertyData(
+            this.deviceSelectorValue,
+            {
+              str: this.propertySelectorValue
+            }
+          )).data.d;
+          this.setChart(result);
+      }, 5000);
+    },
+    clear() {
+      clearInterval(this.intervalId); //清除计时器
+      this.intervalId = null; //设置为null
     }
   },
-  beforeDestroy() {
-    if (!this.chart) {
-      return;
-    }
-    this.chart.dispose();
-    this.chart = null;
+  async created() {
+    this.dataRefreh();
+  },
+  destroyed() {
+    this.clear();
   }
 };
 </script>

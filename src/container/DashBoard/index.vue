@@ -1,13 +1,13 @@
 <template>
   <div>
     <el-row>
-      <el-col :span="14">
+      <el-col :span="12">
         <el-card class="dashboard-row1">
           <div class="dashboard-card-header"> 地域分布 </div>
           <DashBoardMap></DashBoardMap>
         </el-card>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="12">
         <el-card class="dashboard-row1">
           <div class="dashboard-card-header"> 实时数据 </div>
           <DashboardLineChart></DashboardLineChart>
@@ -15,13 +15,13 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col :span="14">
+      <el-col :span="12">
         <el-card class="dashboard-row2">
           <div class="dashboard-card-header"> 告警信息 </div>
           <DashboardAlarmHistory></DashboardAlarmHistory>
         </el-card>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="12">
         <el-card class="dashboard-row2">
           <div class="dashboard-card-header"> 告警统计 </div>
           <DashboardStatistics></DashboardStatistics>
