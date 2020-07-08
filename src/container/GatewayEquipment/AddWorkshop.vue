@@ -1,5 +1,8 @@
 <template>
-  <el-dialog :title="'新增'+GLOBAL.thirdLevel" :visible.sync="workshopAddVisible">
+  <el-dialog :title="'新增'+GLOBAL.thirdLevel" 
+   :visible.sync="visible"
+    @close="$emit('update:workshopAddVisible', false)"
+    :workshopAddVisible="workshopAddVisible">
     <el-form :model="workshopTable" ref="workshopTable">
       <el-form-item
         :label="GLOBAL.thirdLevel+'名'"
@@ -35,7 +38,7 @@
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button @click="workshopAddVisible = false">取 消</el-button>
+      <el-button @click="$emit('update:workshopAddVisible')">取 消</el-button>
       <el-button type="primary" @click="addWorkshop('workshopTable')">确 定</el-button>
     </div>
   </el-dialog>
@@ -44,8 +47,11 @@
 <script>
 export default {
   name: "AddWorkshop",
+  props: ["workshopAddVisible"],
   data() {
     return {
+      visible: this.workshopAddVisible,
+      newFactoryList: [],
       workshopTable: {
         workshopName: "",
         workshopPhoneNumber: "",
@@ -79,6 +85,11 @@ export default {
           }
         }
       });
+    }
+  },
+  watch: {
+    workshopAddVisible() {
+      this.visible = this.workshopAddVisible;
     }
   }
 };

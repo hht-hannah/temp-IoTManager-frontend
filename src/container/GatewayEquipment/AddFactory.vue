@@ -47,6 +47,8 @@ export default {
   props: ["factoryAddVisible"],
   data() {
     return {
+      newFactoryList: [],
+      newCityList: [],
       visible: this.factoryAddVisible,
       factoryTable: {
         factoryName: "",

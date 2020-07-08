@@ -220,7 +220,7 @@ export default {
   watch: {
     newFormVisible() {
       this.visible = this.newFormVisible;
-    }
+    },
   }
 };
 </script>
