@@ -134,7 +134,7 @@
     </el-dialog>
 
     <el-row v-if="true">
-      <el-col :span="3">
+      <el-col :span="4">
         <!--<MonitoringTree></MonitoringTree>-->
         <div class="monitoring-tree-container">
           <el-tree
@@ -145,19 +145,23 @@
           ></el-tree>
         </div>
       </el-col>
-      <el-col v-loading="pageLoading" :span="21">
-        <el-form :inline="true" :model="form" class="header">
-          <el-form-item :label="GLOBAL.firstLevel" v-if="true">
-            <el-select v-model="form.city" @change="getFactoryList(form.city)" placeholder="请选择城市">
+      <el-col v-loading="pageLoading" :span="20">
+        <el-form class="search-container header" :inline="true" :model="form">
+          <el-form-item label="设备">
+            <el-select
+              v-model="form.device"
+              @change="handleNodeClick(form.device)"
+              placeholder="请选择设备"
+            >
               <el-option
-                v-for="item in cityOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.label"
+                v-for="item in devices"
+                :key="item.id"
+                :label="item.deviceName"
+                :value="item.id"
               ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item :label="GLOBAL.secondLevel" v-if="true">
+          <!-- <el-form-item :label="GLOBAL.secondLevel" v-if="true">
             <el-select v-model="form.factory" placeholder="请选择工厂" @change="filter">
               <el-option
                 v-for="item in factoryOptions"
@@ -166,7 +170,7 @@
                 :value="item.label"
               ></el-option>
             </el-select>
-          </el-form-item>
+          </el-form-item>-->
           <!--<el-form-item v-if="checkMonitorAuth(['MONITOR_RETRIEVE'])">-->
           <!--<el-button type="primary" @click="filter"><img src="../../assets/img/find.svg">筛选</el-button>-->
           <!--</el-form-item>-->
@@ -258,8 +262,7 @@ export default {
       devices: [],
 
       form: {
-        city: "",
-        factory: ""
+        device: ""
       },
       // 弹框
       showExportDeviceData: false,
@@ -315,28 +318,84 @@ export default {
     },
     async filter() {
       this.treeLoading = true;
-      if (this.form.city !== "" && this.form.factory !== "") {
-        this.treeData = (
-          await getDeviceTreeApi(this.form.city, this.form.factory)
-        ).data.d;
-        if (this.treeData.length === 0) {
-          this.hasData = false;
-          alert("无设备");
-        } else {
-          this.hasData = false;
-          if (this.treeData[0]["children"].length > 0) {
-            this.hasData = true;
-            this.handleNodeClick(this.treeData[0]["children"][0]);
-          }
+      // if (this.form.city !== "" && this.form.factory !== "") {
+      //   this.treeData = (
+      //     await getDeviceTreeApi(this.form.city, this.form.factory)
+      //   ).data.d;
+      //   if (this.treeData.length === 0) {
+      //     this.hasData = false;
+      //     alert("无设备");
+      //   } else {
+      //     this.hasData = false;
+      //     if (this.treeData[0]["children"].length > 0) {
+      //       this.hasData = true;
+      //       this.handleNodeClick(this.treeData[0]["children"][0]);
+      //     }
+      //   }
+      // } else {
+      //   this.treeData = [];
+      // }
+      this.treeData = [
+        {
+          label: "上海",
+          children: [
+            {
+              label: "一号楼",
+              children: [
+                {
+                  label: "天平实验室"
+                },
+                {
+                  label: "盘古实验室"
+                },
+                {
+                  label: "温度实验室"
+                },
+                {
+                  label: "01气象站"
+                }
+              ]
+            },
+            {
+              label: "2号楼"
+            },
+            {
+              label: "TEST-实验楼",
+              children: [
+                {
+                  label: "TEST-实验楼"
+                },
+                {
+                  label: "1号实验楼"
+                }
+              ]
+            },
+            {
+              label: "维信电子",
+              children: [
+                {
+                  label: "1号车间"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          label: "北京"
+        },
+        {
+          label: "南京"
+        },
+        {
+          label: "苏州"
         }
-      } else {
-        this.treeData = [];
-      }
+      ];
       this.treeLoading = false;
       //调接口，传form参数
     },
     async getCityList() {
       this.cityOptions = (await getCityOptions()).data.d;
+      console.log(this.cityOptions);
       if (this.cityOptions[0] != null) {
         this.form.city = this.cityOptions[0].valueTuple;
         this.getFactoryList(this.cityOptions[0].valueTuple);
@@ -382,12 +441,21 @@ export default {
     },
     async handleNodeClick(data) {
       this.pageLoading = true;
-      if (data.id) {
+      var currentDevice = null;
+      this.devices.forEach(device => {
+        if (device.id === data) {
+          currentDevice = device;
+        }
+      });
+      if (currentDevice) {
         //data.label是设备名称
-        this.$store.dispatch("device/setCurrentDeviceData", data.label);
-        this.deviceData.hardwareDeviceID = data.deviceId;
+        this.$store.dispatch(
+          "device/setCurrentDeviceData",
+          currentDevice.deviceName
+        );
+        this.deviceData.hardwareDeviceID = currentDevice.id;
         this.deviceData.affiliateFields = (
-          await getAffiliateFields(data.deviceId)
+          await getAffiliateFields(currentDevice.id)
         ).data.d;
       }
       this.pageLoading = false;
@@ -485,13 +553,20 @@ export default {
     },
     async getDevices() {
       this.devices = (await getDevicesApi()).data.d;
-      console.log(this.devices);
     }
   },
   async mounted() {
     await this.getCityList();
     await this.getDevices();
 
+    this.$store.dispatch(
+      "device/setCurrentDeviceData",
+      this.devices[0].deviceName
+    );
+    this.devices[0].hardwareDeviceID = devices[0].id;
+    this.devices[0].affiliateFields = (
+      await getAffiliateFields(devices[0].id)
+    ).data.d;
     this.severityOptions = (await getSeverity()).data.d;
     // this.treeData = (await getDeviceTreeApi(this.form.city, this.form.factory)).data.d;
   },
@@ -500,6 +575,7 @@ export default {
 </script>
 
 <style scoped>
+@import "../../assets/scss/variaties.scss";
 .header {
   padding: 10px;
   /* background-color: rgba(64, 158, 255, 0.05); */
@@ -510,9 +586,10 @@ export default {
 }
 
 .el-tree {
-  margin-right: 20px;
+  /* border: 1px solid #DCDFE6; */
+  /* font-size: 14px; */
   padding-top: 10px;
-  height: 1000px;
-  background-color: rgba(64, 158, 255, 0.1);
+  height: 600px;
+  background-color: transparent;
 }
 </style>

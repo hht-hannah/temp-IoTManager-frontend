@@ -17,12 +17,6 @@
       </el-form>
     </div>
     <div class="table-container" v-if="checkTypeAuth(['CONFIGURE_SYSTEM_RETRIEVE'])">
-      <el-pagination background layout="prev, pager, next"
-                     :total="totalPage"
-                     :current-page.sync="curPage"
-                     :page-size="12"
-                     @current-change="pageChange()">
-      </el-pagination>
       <el-table
         v-loading="loading"
         :data="tableData"
@@ -52,6 +46,12 @@
           </template>
         </el-table-column>
       </el-table>
+       <el-pagination background layout="prev, pager, next"
+                     :total="totalPage"
+                     :current-page.sync="curPage"
+                     :page-size="12"
+                     @current-change="pageChange()">
+      </el-pagination>
     </div>
 
     <el-dialog title="修改设备类型" :visible.sync="updateFormVisible">
@@ -282,9 +282,11 @@
 </script>
 
 <style scoped>
+@import "../../assets/scss/variaties.scss";
   .search-container, .table-container, .deleteButton-container {
     margin: 1% 1%;
     text-align: left;
+    border: none;
   }
 
   h2 {

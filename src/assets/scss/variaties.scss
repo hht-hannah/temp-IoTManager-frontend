@@ -1,2 +1,43 @@
 $main-color:#409EFF;
 $dashboard-block-height: 400px;
+
+
+.select-title {
+    margin-right: 5px;
+    margin-left: 5px;
+    font-weight: 500;
+}
+
+.el-select {
+    margin-bottom: 10px;
+}
+
+.el-cascader {
+    margin-bottom: 10px;
+}
+
+.search-container{
+    border: 1px solid #DCDFE6;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px;
+    height: 60px;
+}
+
+.el-pagination {
+    text-align: center;
+    margin-top: 10px;    
+}
+
+.page-title {
+    margin-left: 10px;
+}
+
+.monitoring-tree-container{
+    border: 1px solid #DCDFE6;
+    border-radius: 8px;
+    margin: 20px;
+    height: auto;
+    background-color: #dcdfe667;
+    // background-color: lightgray;;
+}

@@ -1,18 +1,8 @@
 <template>
-  <div>
-    <div class="block">
-      <span class="demonstration">地域筛选</span>
-      <!--<el-cascader-->
-      <!--:options="selectorOptions"-->
-      <!--v-model="searchCity"-->
-      <!--@change="areaFilter">-->
-      <!--</el-cascader>-->
-      <el-cascader :options="selectorOptions" v-model="searchCity" @change="areaFilter"></el-cascader>
-      <div class="dashboard-map-container">
-        <!--<h2>-->
-        <!--中国地图-->
-        <!--</h2>-->
-      </div>
+  <div class="block">
+    <span class="select-title">地域筛选</span>
+    <el-cascader :options="selectorOptions" v-model="searchCity" @change="areaFilter"></el-cascader>
+    <div class="dashboard-map-container">
     </div>
   </div>
 </template>
@@ -24,11 +14,6 @@ import echarts from "echarts";
 // 一定要引入才能正常显示
 import "echarts/map/js/world";
 import {
-  getDeviceAmount,
-  getCityOptions,
-  getGatewayByWorkshop,
-  getFactoryOptions,
-  getWorkshopOptions,
   getMapInfo,
   getCityCascaderOptions,
   getOneMapInfo,
@@ -42,6 +27,7 @@ export default {
   data() {
     return {
       chart: null,
+      reload: true,
       searchCity: ["全部"],
       option: {
         backgroundColor: "#404a59", // 图表背景色
@@ -87,7 +73,7 @@ export default {
     };
   },
   async created() {
-    this.dataRefreh()
+    this.dataRefreh();
   },
   methods: {
     dataRefreh() {
@@ -111,7 +97,9 @@ export default {
       let myChart = echarts.init(
         document.getElementsByClassName("dashboard-map-container")[0]
       ); //这里是为了获得容器所在位置
-      window.onresize = myChart.resize;
+      window.onresize = function() {
+        myChart.resize();
+      };
       myChart.setOption(this.option);
     },
     async areaFilter() {
@@ -139,7 +127,6 @@ export default {
           data: amount
         }
       ];
-      this.chinaConfigure();
 
       let data = [];
       if (this.searchCity[0] === "全部") {
@@ -171,24 +158,23 @@ export default {
         }
       }
       this.$store.dispatch("device/setDashboardDeviceOption", data);
+      if (this.reload) {
+        this.chinaConfigure();
+        this.reload = false;
+      }
     },
     async getDeviceOptions() {
       this.selectorOptions = (await getCityCascaderOptions()).data.d;
     }
   },
-    destroyed() {
+  destroyed() {
     this.clear();
-  },
+  }
 };
 </script>
 
 <style lang="scss" scoped>
 @import "../../assets/scss/variaties.scss";
-
-.block {
-  margin: 10px;
-}
-
 .dashboard-map-container {
   margin-top: 7px;
   height: $dashboard-block-height;

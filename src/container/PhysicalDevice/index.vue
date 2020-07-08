@@ -1,5 +1,6 @@
 <template>
   <div>
+     <h2 class="page-title"> 物理设备 </h2>
     <div class="search-container">
       <el-form :inline="true" :model="searchDevice" class="header">
         <el-form-item v-if="checkDeviceAuth(['DEVICE_RETRIEVE'])">
@@ -10,10 +11,10 @@
             @change="searchCascader">
           </el-cascader>
         </el-form-item>
-        <el-form-item v-if="checkDeviceAuth(['DEVICE_EXPORT_EXCEL'])">
+        <el-form-item  class="export-excel-button" v-if="checkDeviceAuth(['DEVICE_EXPORT_EXCEL'])">
           <el-button type="primary" @click="exportExcel">导出Excel</el-button>
         </el-form-item>
-        <el-form-item v-if="checkDeviceAuth(['DEVICE_IMPORT_EXCEL'])">
+        <el-form-item  class="upload-excel-button" v-if="checkDeviceAuth(['DEVICE_IMPORT_EXCEL'])">
           <el-upload
             ref="upload"
             action="https://jsonplaceholder.typicode.com/posts/"
@@ -29,18 +30,12 @@
     </div>
     <div class="addbutton-container" v-if="checkDeviceAuth(['DEVICE_CREATE'])">
       <el-button type="primary" @click="newFormVisible = true">新增设备</el-button>
+      <el-button type="primary" @click="multipleDelete" v-if="checkDeviceAuth(['DEVICE_DELETE'])">批量删除</el-button>
     </div>
     <div class="table-container" v-if="checkDeviceAuth(['DEVICE_RETRIEVE'])">
-      <el-pagination background layout="prev, pager, next"
-                     :total="totalPage"
-                     :current-page.sync="curPage"
-                     :page-size="12"
-                     @current-change="pageChange()">
-      </el-pagination>
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
         style="width: 100%"
         @selection-change="handleSelectionChange"
         @sort-change="sortChange"
@@ -51,11 +46,13 @@
         <el-table-column
           prop="hardwareDeviceID"
           label="设备编号"
+          width="120px"
           sortable="custom">
         </el-table-column>
         <el-table-column
           prop="deviceName"
           label="设备名称"
+          width="120px"
           sortable="custom">
         </el-table-column>
         <el-table-column
@@ -74,24 +71,16 @@
           prop="workshop"
           :label="GLOBAL.thirdLevel">
         </el-table-column>
-        <!--<el-table-column
-          prop="deviceState"
-          label="设备状态"
-          width="120">
-        </el-table-column>-->
-        <!--<el-table-column
-          prop="lastConnectionTime"
-          label="上次连接时间"
-          width="120">
-        </el-table-column>-->
         <el-table-column
           prop="createTime"
           label="创建时间"
+          width="120"
           sortable="custom">
         </el-table-column>
         <el-table-column
           prop="updateTime"
           label="更新时间"
+          width="120"
           sortable="custom">
         </el-table-column>
         <el-table-column
@@ -106,11 +95,6 @@
           prop="remark"
           label="描述">
         </el-table-column>
-        <!--<el-table-column
-          prop="department"
-          label="部门"
-          width="120">
-        </el-table-column>-->
         <el-table-column
           label="标签">
           <template slot-scope="scope">
@@ -123,6 +107,7 @@
         </el-table-column>
         <el-table-column
           fixed="right"
+          width="120"
           label="操作" v-if="checkDeviceAuth(['DEVICE_UPDATE', 'DEVICE_DELETE'])">
           <template slot-scope="scope">
             <el-button @click="openUpdateForm(scope.row)" type="text" size="small"
@@ -135,9 +120,12 @@
           </template>
         </el-table-column>
       </el-table>
-    </div>
-    <div class="addbutton-container">
-      <el-button type="primary" @click="multipleDelete" v-if="checkDeviceAuth(['DEVICE_DELETE'])">批量删除</el-button>
+      <el-pagination background layout="prev, pager, next"
+                     :total="totalPage"
+                     :current-page.sync="curPage"
+                     :page-size="12"
+                     @current-change="pageChange()">
+      </el-pagination>
     </div>
     <el-dialog title="修改设备" :visible.sync="updateFormVisible">
       <el-form :model="updateData" ref="updateData">
@@ -196,22 +184,6 @@
           </el-select>
           <el-button type="primary" @click="workshopAddVisible = true">+</el-button>
         </el-form-item>
-        <!--<el-form-item label="设备状态" label-width="120px">-->
-        <!--<el-select v-model="updateData.deviceState" placeholder="选择设备状态">-->
-        <!--<el-option-->
-        <!--v-for="ds in deviceState"-->
-        <!--:key="ds.id"-->
-        <!--:label="ds.stateName"-->
-        <!--:value="ds.stateName">-->
-        <!--</el-option>-->
-        <!--</el-select>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="设备图像链接" label-width="120px">-->
-          <!--<el-input v-model="updateData.imageUrl" autocomplete="off"></el-input>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="所属网关编号" label-width="120px">-->
-        <!--<el-input v-model="updateData.gatewayID" autocomplete="off"></el-input>-->
-        <!--</el-form-item>-->
         <el-form-item label="所属网关" prop="gatewayId" label-width="120px"
                       :rules="[{required: true, message: '所属网关不能为空'}]">
           <el-select v-model="updateData.gatewayId" placeholder="选择所属网关">
@@ -226,22 +198,9 @@
         <el-form-item label="MAC地址" label-width="120px">
           <el-input v-model="updateData.mac" autocomplete="off"></el-input>
         </el-form-item>
-        <!--<el-form-item label="部门" label-width="120px">
-          <el-select v-model="updateData.department" placeholder="选择部门">
-            <el-option
-              v-for="d in department"
-              :key="d.id"
-              :label="d.departmentName"
-              :value="d.departmentName">
-            </el-option>
-          </el-select>
-        </el-form-item>-->
         <el-form-item label="描述" label-width="120px">
           <el-input v-model="updateData.remark" autocomplete="off"></el-input>
         </el-form-item>
-        <!--<el-form-item>
-          <UploadImg @upload="addImage"></UploadImg>
-        </el-form-item>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="updateFormVisible = false">取 消</el-button>
@@ -306,22 +265,6 @@
           </el-select>
           <el-button type="primary" @click="workshopAddVisible = true">+</el-button>
         </el-form-item>
-        <!--<el-form-item label="设备状态" label-width="120px">-->
-        <!--<el-select v-model="newDeviceData.deviceState" placeholder="选择设备状态">-->
-        <!--<el-option-->
-        <!--v-for="ds in deviceState"-->
-        <!--:key="ds.id"-->
-        <!--:label="ds.stateName"-->
-        <!--:value="ds.stateName">-->
-        <!--</el-option>-->
-        <!--</el-select>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="设备图像链接" label-width="120px">-->
-          <!--<el-input v-model="newDeviceData.imageUrl" autocomplete="off"></el-input>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="所属网关编号" label-width="120px">-->
-        <!--<el-input v-model="newDeviceData.gatewayId" autocomplete="off"></el-input>-->
-        <!--</el-form-item>-->
         <el-form-item label="所属网关" prop="gatewayId" label-width="120px"
                       :rules="[{required: true, message: '所属网关不能为空'}]">
           <el-select v-model="newDeviceData.gatewayId" placeholder="选择所属网关">
@@ -336,43 +279,9 @@
         <el-form-item label="MAC地址" label-width="120px">
           <el-input v-model="newDeviceData.mac" autocomplete="off"></el-input>
         </el-form-item>
-        <!--<el-form-item label="部门" label-width="120px">-->
-        <!--<el-select v-model="newDeviceData.department" placeholder="选择部门">-->
-        <!--<el-option-->
-        <!--v-for="d in department"-->
-        <!--:key="d.id"-->
-        <!--:label="d.departmentName"-->
-        <!--:value="d.departmentName">-->
-        <!--</el-option>-->
-        <!--</el-select>-->
-        <!--</el-form-item>-->
         <el-form-item label="描述" label-width="120px">
           <el-input v-model="newDeviceData.remark" autocomplete="off"></el-input>
         </el-form-item>
-        <!--<el-form-item class="tag-center">-->
-        <!--<el-tag-->
-        <!--:key="tag"-->
-        <!--v-for="tag in newDeviceData.dynamicTags"-->
-        <!--closable-->
-        <!--:disable-transitions="false"-->
-        <!--@close="handleClose(tag)">-->
-        <!--{{tag}}-->
-        <!--</el-tag>-->
-        <!--<el-input-->
-        <!--class="input-new-tag"-->
-        <!--v-if="newDeviceData.inputVisible"-->
-        <!--v-model="newDeviceData.inputValue"-->
-        <!--ref="saveTagInput"-->
-        <!--size="small"-->
-        <!--@keyup.enter.native="handleInputConfirm"-->
-        <!--@blur="handleInputConfirm"-->
-        <!--&gt;-->
-        <!--</el-input>-->
-        <!--<el-button v-else class="button-new-tag" size="small" @click="showInput">+</el-button>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item>-->
-        <!--<UploadImg @upload="addImage"></UploadImg>-->
-        <!--</el-form-item>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="newFormVisible = false">取 消</el-button>
@@ -1207,14 +1116,19 @@
 </script>
 
 <style scoped>
-  .search-container, .addbutton-container, .table-container {
+@import "../../assets/scss/variaties.scss";
+ .addbutton-container, .table-container {
     margin: 1% 1%;
     text-align: left;
   }
 
-  .add-device-container {
+  .el-form {
+  margin: 10px 0 -10px 10px;
+}
+.export-excel-button, .upload-excel-button {
+  float: right;
+}
 
-  }
 
   /*标签处理*/
   .el-tag + .el-tag {

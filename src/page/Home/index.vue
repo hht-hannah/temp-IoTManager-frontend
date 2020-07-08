@@ -45,12 +45,10 @@
       z-index: 99;
     }
     .sidebar-screen{
-      height: calc(100% - #{$nav-height});
       .adaptive{
         top:$nav-height;
         position: fixed;
         width: $sidebar-width;
-        min-width: 130px;
       }
     }
   }
@@ -59,8 +57,8 @@
   }
   .router-view{
     position: absolute;
-    top:$nav-height;
+    top: 70px;
     right: 0;
-    width: calc(100% - #{$sidebar-width});;
+    width: calc(100% - #{185px});;
   }
 </style>

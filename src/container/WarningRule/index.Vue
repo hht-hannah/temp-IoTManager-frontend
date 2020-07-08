@@ -1,5 +1,6 @@
 <template>
-  <div>
+     <div>
+    <h2 style="margin-left: 10px">告警规则</h2>
     <div class="search-container">
       <el-form :inline="true" :model="searchData" class="demo-form-inline">
         <el-form-item label="选择设备" v-if="checkRuleAuth(['ALARMRULE_RETRIEVE'])">
@@ -15,14 +16,10 @@
         </el-form-item>
       </el-form>
     </div>
-    <h2 style="margin-left: 10px">告警规则</h2>
+     <div class="addbutton-container">
+      <el-button type="primary" @click="multipleDelete" v-if="checkRuleAuth(['ALARMRULE_DELETE'])">批量删除</el-button>
+    </div>
     <div class="table-container" v-if="checkRuleAuth(['ALARMRULE_RETRIEVE'])">
-      <el-pagination background layout="prev, pager, next"
-                     :total="totalPage"
-                     :current-page.sync="curPage"
-                     :page-size="12"
-                     @current-change="pageChange()">
-      </el-pagination>
       <el-table
         :data="rulesData"
         @selection-change="handleSelectionChange"
@@ -61,9 +58,12 @@
         </template>
         </el-table-column>
       </el-table>
-    </div>
-    <div class="addbutton-container">
-      <el-button type="primary" @click="multipleDelete" v-if="checkRuleAuth(['ALARMRULE_DELETE'])">批量删除</el-button>
+       <el-pagination background layout="prev, pager, next"
+                     :total="totalPage"
+                     :current-page.sync="curPage"
+                     :page-size="12"
+                     @current-change="pageChange()">
+      </el-pagination>
     </div>
 
       <el-dialog title="修改规则" :visible.sync="updateFormVisible">
@@ -122,6 +122,7 @@
       </el-dialog>
   </div>
 </template>
+
 
 <script>
   import {
@@ -306,8 +307,9 @@
 </script>
 
 <style scoped>
-  .search-container, .addbutton-container ,.table-container{
-    margin:1% 1%;
+@import "../../assets/scss/variaties.scss";
+  .addbutton-container ,.table-container{
+    margin: 1% 1%;
     text-align: left;
   }
 </style>

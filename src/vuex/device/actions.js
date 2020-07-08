@@ -1,5 +1,4 @@
 import * as Type from './mutation-type';
-import { Message } from 'element-ui';
 import * as api from '../../api/api';
 const actions = {
   async setDeviceTree({ commit, dispatch, state }){

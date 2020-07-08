@@ -1,7 +1,7 @@
 <template>
-  <div class="time-dimension-container">
-    <el-table :data="tableData" border>
-      <el-table-column prop="timestamp" label="告警时间"></el-table-column>
+  <div class="dashboard-alarm-container">
+    <el-table :data="tableData" max-height="250" row-class-name="dashboard-alarm-row">
+      <el-table-column prop="timestamp" label="告警时间" width="150%"></el-table-column>
       <el-table-column prop="deviceId" label="设备编号"></el-table-column>
       <el-table-column prop="indexName" label="数据名称"></el-table-column>
       <el-table-column prop="indexValue" label="告警数值"></el-table-column>
@@ -46,9 +46,6 @@ import { getDashboardAlarmInfo } from "../../api/api";
 export default {
   name: "DashboardAlarmHistory",
   methods: {
-    handleClick(row) {
-      console.log(row);
-    },
     dataRefreh() {
       // 计时器正在进行中，退出函数
       if (this.intervalId != null) {
@@ -65,6 +62,7 @@ export default {
     },
   },
   async created() {
+     this.tableData = (await getDashboardAlarmInfo()).data.d;
      this.dataRefreh();
   },
   destroyed() {
@@ -83,8 +81,4 @@ export default {
 <style lang="scss" scoped>
 @import "../../assets/scss/variaties";
 
-.time-dimension-container {
-  height: $dashboard-block-height;
-  margin: 10px;
-}
 </style>

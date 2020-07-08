@@ -32,7 +32,11 @@
       </el-card>
     </el-row>
     <el-row>
-      <div v-if="showSecondaryChart" v-loading="chartLoading">有张图！</div>
+      <div v-show="showSecondaryChart" class="report-statistic-daily-secondary-chart">
+        <el-card>
+          <div v-loading="chartLoading" class="report-statistic-daily-secondary-chart1"></div>
+        </el-card>
+      </div>
     </el-row>
   </div>
 </template>
@@ -43,14 +47,13 @@ import { getReportByType } from "../../api/api";
 
 export default {
   name: "DeviceTypeDimension",
-  data() {
+  data()  {
     return {
       chartLoading: false,
       selectedType: "",
       // 时间戳数组
       selectedDate: "",
       showSecondaryChart: false,
-      secondaryChart: "",
       histogramOption: {
         xAxis: {
           type: "category",
@@ -261,30 +264,34 @@ export default {
     this.initSubClassChartOne();
     this.initSubClassChartTwo();
     this.handleDateChange();
-    this.initSecondaryChart();
   },
   methods: {
-    initTypeChart() {
+   initTypeChart() {
+      var vm = this;
       this.chart = echarts.init(
         document.getElementsByClassName("report-statistic-daily-histogram")[0]
       );
       // 把配置和数据放这里
       this.chart.setOption(this.histogramOption);
-      this.chart.on("click", function(params) {
-        this.showSecondaryChart = true;
-        this.secondaryChart = params.name;
-        this.secondaryChart = echarts.init(
-          document.getElementsByClassName("report-device-type-histogram")[0]
-        );
-        this.secondaryChart.setOption(this.histogramOption);
+      this.chart.on("click", async(params) => {
+
+        vm.showSecondaryChart = true;
+        vm.chartLoading = true;
+
+        const result = (
+          await getReportByType({
+            startTime: new Date("1980/1/1"),
+            endTime: new Date("2030/12/31")
+          })
+        ).data.d;
+        console.log(result)
+        vm.pieChartOption2.title.text = params.name;
+        vm.secondaryChart = echarts.init( document.getElementsByClassName( "report-statistic-daily-secondary-chart1")[0] );
+        console.log(vm.pieChartOption2);
+        vm.secondaryChart.setOption(vm.pieChartOption2);
+        vm.chartLoading = false;
       });
     },
-    // initSecondaryChart(params) {
-    //   this.secondaryChart = echarts.init(
-    //     document.getElementsByClassName("report-device-type-histogram")[0]
-    //   );
-    //   this.secondaryChart.setOption(this.histogramOption);
-    // },
     initSubClassChartOne() {
       this.pieChart1 = echarts.init(
         document.getElementsByClassName("report-statistic-daily-piechart1")[0]
@@ -327,6 +334,7 @@ export default {
           })
         ).data.d;
 
+        console.log(result)
         this.histogramOption.xAxis.data = result["xAxis"];
         this.histogramOption.series = result["lineChartSeries"];
         this.chart.setOption(this.histogramOption);
@@ -360,7 +368,15 @@ export default {
     height: 400px;
   }
 
-  .el-card{
+  .report-statistic-daily-secondary-chart {
+    height: 400px;
+  }
+
+  .report-statistic-daily-secondary-chart1 {
+    height: 400px;
+  }
+
+  .el-card {
     margin: 10px;
   }
 }

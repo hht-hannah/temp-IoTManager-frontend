@@ -31,7 +31,7 @@ export default {
       intervalId: null,
       alarmOption: {
         title: {
-          text: "Number Of Alarms",
+          text: "告警等级",
           x: "center"
         },
         tooltip: {
@@ -40,43 +40,19 @@ export default {
         },
         legend: {
           orient: "vertical",
-          x: "left",
+          x: "center",
+          top: "33%",
+          textStyle: {
+            fontSize: 12
+          },
           data: ["Info", "Warning", "Critical"]
         },
-        series: [
-          {
-            name: "告警等级",
-            type: "pie",
-            radius: ["50%", "70%"],
-            avoidLabelOverlap: false,
-            label: {
-              normal: {
-                show: false,
-                position: "center"
-              },
-              emphasis: {
-                show: true,
-                textStyle: {
-                  fontSize: "30",
-                  fontWeight: "bold"
-                }
-              }
-            },
-            labelLine: {
-              normal: {
-                show: false
-              }
-            },
-            data: [
-              { value: 335, name: "异常" },
-              { value: 234, name: "正常工作" }
-            ]
-          }
-        ]
+        color: [ "#3399ff", "#33bbff" , "#ffdd33" ],
+        series: []
       },
       statusOption: {
         title: {
-          text: "Status of Device",
+          text: "设备状态",
           x: "center"
         },
         tooltip: {
@@ -85,40 +61,15 @@ export default {
         },
         legend: {
           orient: "vertical",
-          x: "left",
+          x: "center",
+          top: "33%",
+          textStyle: {
+            fontSize: 12
+          },
           data: ["Info", "Warning", "Critical"]
         },
-        series: [
-          {
-            name: "设备状态",
-            type: "pie",
-            radius: ["50%", "70%"],
-            avoidLabelOverlap: false,
-            label: {
-              normal: {
-                show: false,
-                position: "center"
-              },
-              emphasis: {
-                show: true,
-                textStyle: {
-                  fontSize: "30",
-                  fontWeight: "bold"
-                }
-              }
-            },
-            labelLine: {
-              normal: {
-                show: false
-              }
-            },
-            data: [
-              { value: 335, name: "Info" },
-              { value: 310, name: "Warning" },
-              { value: 234, name: "Critical" }
-            ]
-          }
-        ]
+        color: [ "#3399ff", "#33bbff" , "#ffdd33" ],
+        series: []
       }
     };
   },
@@ -142,11 +93,10 @@ export default {
       this.intervalId = null; //设置为null
     },
     async initAlarmChart() {
-      this.chart = echarts.init(
+      this.chart1 = echarts.init(
         document.getElementsByClassName("alarm-container")[0]
       );
       // 把配置和数据放这里
-      // this.deviceDataAmount = (await getDeviceDataAmount()).data.d;
       this.noticeAlarmInfoAmount = (await getNoticeAlarmInfoAmount()).data.d;
       this.seriousAlarmInfoAmount = (await getSeriousAlarmInfoAmount()).data.d;
       this.verySeriousAlarmInfoAmount = (
@@ -156,25 +106,14 @@ export default {
         {
           name: "告警等级",
           type: "pie",
+          left: 10,
           radius: ["50%", "70%"],
-          avoidLabelOverlap: false,
+          avoidLabelOverlap: true,
           label: {
-            normal: {
               show: false,
-              position: "center"
-            },
-            emphasis: {
-              show: true,
-              textStyle: {
-                fontSize: "30",
-                fontWeight: "bold"
-              }
-            }
           },
           labelLine: {
-            normal: {
               show: false
-            }
           },
           data: [
             { value: this.verySeriousAlarmInfoAmount, name: "Critical" },
@@ -183,12 +122,17 @@ export default {
           ]
         }
       ];
-      this.chart.setOption(this.alarmOption);
+      this.chart1.setOption(this.alarmOption);
     },
     async initStatusChart() {
-      this.chart = echarts.init(
+      var vm = this;
+      this.chart2 = echarts.init(
         document.getElementsByClassName("status-container")[0]
       );
+      window.onresize = function() {
+        vm.chart1.resize();
+        vm.chart2.resize();
+      };
       // 把配置和数据放这里
       const statusData = (await getDashboardDeviceStatus()).data.d;
       this.statusOption.series = [
@@ -196,18 +140,14 @@ export default {
           name: "设备状态",
           type: "pie",
           radius: ["50%", "70%"],
-          avoidLabelOverlap: false,
+          avoidLabelOverlap: true,
           label: {
             normal: {
               show: false,
               position: "center"
             },
             emphasis: {
-              show: true,
-              textStyle: {
-                fontSize: "30",
-                fontWeight: "bold"
-              }
+              show: false,
             }
           },
           labelLine: {
@@ -222,7 +162,7 @@ export default {
           ]
         }
       ];
-      this.chart.setOption(this.statusOption);
+      this.chart2.setOption(this.statusOption);
     }
   },
   destroyed() {
@@ -235,7 +175,6 @@ export default {
 @import "../../assets/scss/variaties";
 .alarm-container,
 .status-container {
-  height: $dashboard-block-height;
-  margin: 10px;
+  height: 250px;
 }
 </style>

@@ -245,7 +245,7 @@ export default {
     margin-right: 20px;
     padding-top: 10px;
     height: 1000px;
-    background-color: rgba(64, 158, 255, 0.1);
+    // background-color: rgba(64, 158, 255, 0.1);
   }
 
 }

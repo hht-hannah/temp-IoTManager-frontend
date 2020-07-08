@@ -16,11 +16,11 @@
 </template>
 
 <script>
-    import DatabaseConfig from '../../components/DatabaseConfig/index';
-    import DeviceTypeConfig from '../../components/DeviceTypeConfig/index';
-    import PropertyConfig from '../../components/PropertyConfig/index';
-    import TagConfig from '../../components/TagConfig/index';
-    import NameConfig from '../../components/NameConfig/index';
+    import DatabaseConfig from './DatabaseConfig';
+    import DeviceTypeConfig from './DeviceTypeConfig';
+    import PropertyConfig from './PropertyConfig';
+    import TagConfig from './TagConfig';
+    import NameConfig from './NameConfig';
     export default {
       name: "SystemConfig",
       data() {
@@ -57,6 +57,7 @@
 </script>
 
 <style scoped>
+@import "../../assets/scss/variaties.scss";
   .system-config-container{
     margin-top: 10px;
     margin-left: 20px;
