@@ -1,5 +1,11 @@
 <template>
-    <el-dialog title="修改网关" :visible.sync="visible">
+  <div>
+    <el-dialog
+      title="修改网关"
+      :visible.sync="visible"
+      @close="$emit('update:updateFormVisible', false)"
+      :updateFormVisible="updateFormVisible"
+    >
       <el-form :model="updateData" ref="updateData">
         <el-form-item label="网关编号" label-width="120px">
           <el-input v-model="updateData.hardwareGatewayID" autocomplete="off" disabled></el-input>
@@ -51,7 +57,7 @@
         >
           <el-select
             v-model="updateData.factory"
-            @change="getUpdateWorkshop(updateData.factory)"
+            @change="getUpdateWorkshop(updateData.city, updateData.factory)"
             placeholder="选择工厂"
           >
             <el-option v-for="f in updateFactory" :key="f.value" :label="f.label" :value="f.label"></el-option>
@@ -100,23 +106,44 @@
         </el-form-item>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="updateFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="update('updateData')">确 定</el-button>
+        <el-button @click="$emit('update:updateFormVisible', false)">取 消</el-button>
+        <el-button type="primary" @click="updateGateway('updateData')">确 定</el-button>
       </div>
     </el-dialog>
+    <AddGatewayType :typeAddVisible.sync="typeAddVisible" :onClose="onAddGatewayTypeClose"></AddGatewayType>
+    <AddCity :cityAddVisible.sync="cityAddVisible" :onClose="onAddCityClose"></AddCity>
+    <AddFactory :factoryAddVisible.sync="factoryAddVisible" :onClose="onAddFactoryClose"></AddFactory>
+    <AddWorkshop :workshopAddVisible.sync="workshopAddVisible" :onClose="onAddWorkshopClose"></AddWorkshop>
+  </div>
 </template>
 
 <script>
+import {
+  getCityOptions,
+  getFactoryOptions,
+  getWorkshopOptions,
+  getGatewayType,
+  updateGatewayApi
+} from "../../api/api";
+import AddGatewayType from "../../components/Dialogues/AddGatewayType";
+import AddCity from "../../components/Dialogues/AddCity";
+import AddFactory from "../../components/Dialogues/AddFactory";
+import AddWorkshop from "../../components/Dialogues/AddWorkshop";
+
 export default {
   name: "UpdateGateway",
-  props: ["updateFormVisible"],
+  props: ["updateFormVisible", "defaultData", "getDeviceOptions"],
+  components: { AddCity, AddGatewayType, AddFactory, AddWorkshop },
   data() {
     return {
       visible: this.updateFormVisible,
+      cityAddVisible: false,
+      factoryAddVisible: false,
+      workshopAddVisible: false,
+      typeAddVisible: false,
+      updateCity: [],
       updateFactory: [],
       updateWorkshop: [],
-      department: [],
-      gatewayState: [],
       gatewayType: [],
       updateData: {
         hardwareGatewayID: "",
@@ -152,30 +179,65 @@ export default {
       } else {
         this.updateData.workshop = "";
       }
+    },
+    async updateGateway(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          try {
+            const data = await updateGatewayApi(this.updateData);
+            this.$emit("update:updateFormVisible", false);
+            if (data.data.c === 200) {
+              this.$message({
+                message: "更新成功",
+                type: "success"
+              });
+              this.$emit("getGateways");
+            }
+          } catch (e) {
+            this.$emit("update:updateFormVisible", false);
+            this.$message.error("更新网关未成功");
+          }
+        } else {
+          console.log("error input");
+          return false;
+        }
+      });
+    },
+    async onAddCityClose() {
+      this.updateCity = (await getCityOptions()).data.d;
+      this.getDeviceOptions();
+    },
+    async onAddGatewayTypeClose() {
+      this.gatewayType = (await getGatewayType()).data.d;
+    },
+    async onAddFactoryClose() {
+      this.getUpdateFactory(this.updateData.city);
+      this.getDeviceOptions();
+    },
+    async onAddWorkshopClose() {
+      this.getUpdateWorkshop(this.updateData.city, this.updateData.factory);
+      this.getDeviceOptions();
     }
   },
-  async update(formName) {
-    this.$refs[formName].validate(async valid => {
-      if (valid) {
-        try {
-          const data = await updateGatewayApi(this.updateData);
-          this.updateFormVisible = false;
-          if (data.data.c === 200) {
-            this.$message({
-              message: "更新成功",
-              type: "success"
-            });
-            this.getGateways();
-          }
-        } catch (e) {
-          this.updateFormVisible = false;
-          this.$message.error("更新网关未成功");
-        }
-      } else {
-        console.log("error input");
-        return false;
-      }
-    });
+  watch: {
+    async updateFormVisible() {
+      this.visible = this.updateFormVisible;
+      this.updateData = JSON.parse(JSON.stringify(this.$props.defaultData));
+      this.updateFactory = (await getFactoryOptions(
+        this.updateData.city
+      )).data.d;
+      this.updateWorkshop = (await getWorkshopOptions(
+        this.updateData.city,
+        this.updateData.factory
+      )).data.d;
+    }
+  },
+  async mounted() {
+    this.updateCity = (await getCityOptions()).data.d;
+    this.gatewayType = (await getGatewayType()).data.d;
+    //newCityList and newFactoryList is because when creating new factory/new workshop, the id of the city and factory is needed, hence complete information is stored in these two arrays.
+    // this.newCityList = (await getCity(1, "id", "asc", 0)).data.d;
+    // this.newFactoryList = (await getFactory(1, "id", "asc", 0)).data.d;
   }
 };
 </script>

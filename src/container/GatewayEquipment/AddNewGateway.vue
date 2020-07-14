@@ -89,29 +89,33 @@
         <el-button type="primary" @click="add('newGatewayData')">确 定</el-button>
       </div>
     </el-dialog>
-    <AddGatewayType :typeAddVisible.sync="typeAddVisible"></AddGatewayType>
-    <AddCity :cityAddVisible.sync="cityAddVisible"></AddCity>
-    <AddFactory :factoryAddVisible.sync="factoryAddVisible"></AddFactory>
-    <AddWorkshop :workshopAddVisible.sync="workshopAddVisible"></AddWorkshop>
+    <AddGatewayType :typeAddVisible.sync="typeAddVisible" :onClose="onAddGatewayTypeClose"></AddGatewayType>
+    <AddCity :cityAddVisible.sync="cityAddVisible" :onClose="onAddCityClose"></AddCity>
+    <AddFactory :factoryAddVisible.sync="factoryAddVisible" :onClose="onAddFactoryClose"></AddFactory>
+    <AddWorkshop :workshopAddVisible.sync="workshopAddVisible" :onClose="onAddWorkshopClose"></AddWorkshop>
   </div>
 </template>
 
 <script>
 import {
+  getCity,
+  getFactory,
+  getCityOptions,
+  getGatewayType,
   getFactoryOptions,
   listWorkshopName,
   getGatewayIdExist,
   addGatewayApi
 } from "../../api/api";
-import AddGatewayType from "./AddGatewayType";
-import AddCity from "./AddCity";
-import AddFactory from "./AddFactory";
-import AddWorkshop from "./AddWorkshop";
+import AddGatewayType from "../../components/Dialogues/AddGatewayType";
+import AddCity from "../../components/Dialogues/AddCity";
+import AddFactory from "../../components/Dialogues/AddFactory";
+import AddWorkshop from "../../components/Dialogues/AddWorkshop";
 
 export default {
   name: "AddNewGateway",
   components: { AddCity, AddGatewayType, AddFactory, AddWorkshop },
-  props: ["newFormVisible", "city", "gatewayType"],
+  props: ["newFormVisible", "getDeviceOptions"],
   data() {
     return {
       visible: this.newFormVisible,
@@ -119,8 +123,12 @@ export default {
       factoryAddVisible: false,
       workshopAddVisible: false,
       typeAddVisible: false,
+      city: [],
+      gatewayType: [],
       factory: [],
       workshop: [],
+      newCityList: [],
+      newFactoryList: [],
       newGatewayData: {
         hardwareGatewayID: "",
         gatewayName: "",
@@ -142,7 +150,9 @@ export default {
   },
   methods: {
     async getNewFactory(city) {
-      this.factory = (await getFactoryOptions(city)).data.d;
+      if (city != "") {
+        this.factory = (await getFactoryOptions(city)).data.d;
+      }
       if (this.factory[0] != null) {
         this.newGatewayData.factory = this.factory[0].value;
         this.getNewWorkshop(
@@ -157,7 +167,9 @@ export default {
       }
     },
     async getNewWorkshop(city, factory) {
-      this.workshop = (await listWorkshopName(city, factory)).data.d;
+      if (city != "" && factory != "") {
+        this.workshop = (await listWorkshopName(city, factory)).data.d;
+      }
       if (this.workshop != null) {
         this.newGatewayData.workshop = this.workshop[0].value;
         console.log(this.newGatewayData.workshop);
@@ -215,12 +227,34 @@ export default {
           return false;
         }
       });
+    },
+    async onAddCityClose() {
+      this.city = (await getCityOptions()).data.d;
+      this.getDeviceOptions();
+    },
+    async onAddGatewayTypeClose() {
+      this.gatewayType = (await getGatewayType()).data.d;
+    },
+    async onAddFactoryClose() {
+      this.getNewFactory(this.newGatewayData.city);
+      this.getDeviceOptions();
+    },
+    async onAddWorkshopClose() {
+      this.getNewWorkshop(this.newGatewayData.city, this.newGatewayData.factory);
+      this.getDeviceOptions();
     }
   },
   watch: {
     newFormVisible() {
       this.visible = this.newFormVisible;
-    },
+    }
+  },
+  async mounted() {
+    this.city = (await getCityOptions()).data.d;
+    this.gatewayType = (await getGatewayType()).data.d;
+    //newCityList and newFactoryList is because when creating new factory/new workshop, the id of the city and factory is needed, hence complete information is stored in these two arrays.
+    // this.newCityList = (await getCity(1, "id", "asc", 0)).data.d;
+    // this.newFactoryList = (await getFactory(1, "id", "asc", 0)).data.d;
   }
 };
 </script>

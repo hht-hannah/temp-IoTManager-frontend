@@ -35,7 +35,7 @@
 <style rel="stylesheet/scss" lang="scss" scoped>
   /*sass加变量*/
   $nav-height: 60px;
-  $sidebar-width:185px;
+  $sidebar-width:150px;
   .home-container{
     height: 100%;
     .nav-screen{
@@ -59,6 +59,6 @@
     position: absolute;
     top: 70px;
     right: 0;
-    width: calc(100% - #{185px});;
+    width: calc(100% - #{175px});;
   }
 </style>

@@ -309,6 +309,9 @@ export default {
         ]; //100%处的颜色
         if (this.chartType === "bar") {
           opt.forEach((e, index) => {
+            while (e["series"].length > 11) {
+              e["series"].shift();
+            }
             s.push({
               type: this.chartType,
               barGap: "0",
@@ -347,6 +350,9 @@ export default {
           });
         } else {
           opt.forEach((e, index) => {
+            while (e["series"].length > 11) {
+              e["series"].shift();
+            }
             s.push({
               type: this.chartType,
               barGap: "0",
@@ -368,7 +374,11 @@ export default {
             });
           });
         }
-        this.option.xAxis[0].data = opt[0].xAxis;
+        var x = opt[0].xAxis;
+        while (x.length > 11) {
+          x.shift();
+        }
+        this.option.xAxis[0].data = x ;
         this.option.series = s;
         this.option.legend = {
           data: this.propertySelectorValue
@@ -408,12 +418,12 @@ export default {
       // 计时器为空，操作
       this.intervalId = setInterval(async () => {
         let result = (await getDeviceMultiPropertyData(
-            this.deviceSelectorValue,
-            {
-              str: this.propertySelectorValue
-            }
-          )).data.d;
-          this.setChart(result);
+          this.deviceSelectorValue,
+          {
+            str: this.propertySelectorValue
+          }
+        )).data.d;
+        this.setChart(result);
       }, 5000);
     },
     clear() {
@@ -434,6 +444,7 @@ export default {
 @import "../../assets/scss/variaties";
 .dashboard-line-chart-container {
   height: 400px;
+  margin: 0 -60px 40px -40px;
 }
 
 .el-select {

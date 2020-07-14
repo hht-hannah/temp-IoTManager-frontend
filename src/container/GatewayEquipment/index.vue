@@ -36,12 +36,6 @@
         v-if="checkGatewayAuth(['GATEWAY_DELETE'])"
       >批量删除</el-button>
     </div>
-    <AddNewGateway
-        :newFormVisible.sync="newFormVisible"
-        :city="city"
-        :gatewayType="gatewayType"
-        @getGateways="getGateways"
-      ></AddNewGateway>
     <div class="table-container" v-if="checkGatewayAuth(['GATEWAY_RETRIEVE'])">
       <el-table
         v-loading="loading"
@@ -111,45 +105,40 @@
         @current-change="pageChange()"
       ></el-pagination>
     </div>
+    <AddNewGateway
+      :newFormVisible.sync="newFormVisible"
+      @getGateways="getGateways"
+      :getDeviceOptions="getDeviceOptions"
+    ></AddNewGateway>
+    <UpdateGateway
+      :updateFormVisible.sync="updateFormVisible"
+      :defaultData="updateData"
+      @getGateways="getGateways"
+      :getDeviceOptions="getDeviceOptions"
+    ></UpdateGateway>
   </div>
 </template>
 
 <script>
 import {
-  addCity,
-  addFactory,
   addGatewayApi,
-  addWorkshop,
-  createGatewayType,
   deleteGatewayApi,
   deleteMultipleGatewayApi,
   getAffiliateDeviceNumber,
-  getAllDepartments,
-  getCity,
   getCityCascaderOptions,
-  getCityOptions,
-  getFactory,
-  getFactoryOptions,
   getGatewayByWorkshop,
-  getGatewayIdExist,
   getGatewayNumber,
   getGatewaysApi,
-  getGatewayState,
-  getGatewayType,
-  getWorkshop,
-  getWorkshopOptions,
-  searchGatewaysApi,
-  updateGatewayApi,
-  listWorkshopName
+  searchGatewaysApi
 } from "../../api/api";
 import AddNewGateway from "./AddNewGateway";
-import AddCity from "./AddCity"
+import UpdateGateway from "./UpdateGateway";
 import FileSaver from "file-saver";
 import XLSX from "xlsx";
 import { checkAuth } from "../../common/util";
 export default {
   name: "GatewayEquipment",
-  components: { AddNewGateway, AddCity },
+  components: { AddNewGateway, UpdateGateway },
   data() {
     return {
       loading: false,
@@ -161,17 +150,6 @@ export default {
       cascaderOptions: [],
       updateFormVisible: false,
       newFormVisible: false,
-      newCityList: [],
-      newFactoryList: [],
-      city: [],
-      factory: [],
-      workshop: [],
-      updateCity: [],
-      updateFactory: [],
-      updateWorkshop: [],
-      department: [],
-      gatewayState: [],
-      gatewayType: [],
       tableData: [
         {
           id: "1",
@@ -209,9 +187,6 @@ export default {
         factory: "all",
         workshop: "all"
       },
-      cityOptions: [],
-      factoryOptions: [],
-      workshopOptions: [],
       searchData: {
         deviceID: "",
         deviceName: ""
@@ -320,57 +295,9 @@ export default {
       const data = await searchGatewaysApi(this.searchData);
       this.tableData = data.data.d;
     },
-    async getUpdateFactory(city) {
-      this.updateFactory = (await getFactoryOptions(city)).data.d;
-      if (this.updateFactory[0] != null) {
-        this.updateData.factory = this.updateFactory[0].value;
-        this.getUpdateWorkshop(city, this.updateData.factory);
-      } else {
-        this.updateData.factory = "";
-        this.updateData.workshop = "";
-        this.updateFactory = [];
-      }
-    },
-    async getUpdateWorkshop(city, factory) {
-      this.updateWorkshop = (await getWorkshopOptions(city, factory)).data.d;
-      if (this.updateWorkshop[0] != null) {
-        this.updateData.workshop = this.updateWorkshop[0].value;
-      } else {
-        this.updateData.workshop = "";
-      }
-    },
-    async update(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await updateGatewayApi(this.updateData);
-            this.updateFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "更新成功",
-                type: "success"
-              });
-              this.getGateways();
-            }
-          } catch (e) {
-            this.updateFormVisible = false;
-            this.$message.error("更新网关未成功");
-          }
-        } else {
-          console.log("error input");
-          return false;
-        }
-      });
-    },
     async openUpdateForm(row) {
       //打开更新表单
-      console.log("test", row);
-      this.updateData = JSON.parse(JSON.stringify(row));
-      this.updateFactory = (await getFactoryOptions(row.city)).data.d;
-      this.updateWorkshop = (await getWorkshopOptions(
-        row.city,
-        row.factory
-      )).data.d;
+      this.updateData = row;
       this.updateFormVisible = true;
     },
     async deleteGateway(row) {
@@ -484,33 +411,6 @@ export default {
       }
       //调接口，传searchGateway参数
     },
-    async getFactoryList(city) {
-      if (city !== "全部") {
-        this.factoryOptions = (await getFactoryOptions(city)).data.d;
-        if (this.factoryOptions[0] != null) {
-          this.searchGateway.factory = this.factoryOptions[0].value;
-          this.getWorkshopList(city, this.searchGateway.factory);
-        } else {
-          this.searchGateway.factory = "";
-          this.searchGateway.workshop = "";
-          this.workshopOptions = [];
-        }
-      } else {
-        this.factoryOptions = [];
-        this.workshopOptions = [];
-        this.searchGateway.factory = "全部";
-        this.searchGateway.workshop = "全部";
-      }
-      // 调获取工厂接口，searchGateway.city参数
-    },
-    async getWorkshopList(city, factory) {
-      this.workshopOptions = (await getWorkshopOptions(city, factory)).data.d;
-      if (this.workshopOptions[0] != null) {
-        this.searchGateway.workshop = this.workshopOptions[0].value;
-      } else {
-        this.searchGateway.workshop = "";
-      }
-    },
     async pageChange() {
       this.getGateways();
     },
@@ -550,14 +450,6 @@ export default {
     this.getDeviceOptions();
     //获取所有网关信息
     this.getGateways();
-    this.cityOptions = (await getCityOptions()).data.d;
-    this.city = (await getCityOptions()).data.d;
-    this.updateCity = (await getCityOptions()).data.d;
-    this.newCityList = (await getCity(1, "id", "asc", 0)).data.d;
-    this.newFactoryList = (await getFactory(1, "id", "asc", 0)).data.d;
-    this.gatewayState = (await getGatewayState()).data.d;
-    this.gatewayType = (await getGatewayType()).data.d;
-    this.department = (await getAllDepartments()).data.d;
   }
 };
 </script>

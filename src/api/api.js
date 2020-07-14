@@ -474,6 +474,7 @@ export function getSeverity() {
 }
 
 export function addCity(city) {
+  console.log(city)
   return axios.post(`/api/city`, {...city});
 }
 
