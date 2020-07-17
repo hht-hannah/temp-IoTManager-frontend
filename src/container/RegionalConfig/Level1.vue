@@ -96,7 +96,6 @@ export default {
       cityData: [],
       pageSize: 6,
       //city修改el-dialog
-      cityList: [],
       cityAddVisible: false,
       searchCity: "",
       updateCityData: [],
@@ -178,29 +177,25 @@ export default {
           ? "id"
           : columnMap[this.cityCurSortColumn];
       const searchOrder =
-        this.cityCurOrder === "" ? "asc" : orderMap[this.cityCurOrder];
+        this.cityCurOrder === "" ? "id ASC" : orderMap[this.cityCurOrder];
       const searchCityName =
         this.searchCity === "全部" ? "all" : this.searchCity;
-      const data = await getCity(
-        this.cityCurPage,
-        searchColumn,
-        searchOrder,
-        this.pageMode
-      );
-      this.cityData = data.data.d;
-      this.getCityTotalPage("search", searchCityName);
+      var skipcount = (this.cityCurPage - 1 ) * this.pageSize;
+      const data = await getCity("", this.cityCurOrder, this.pageSize, skipcount);
+      this.cityData = data.items;
+      this.cityTotalPage = this.cityData.length;
       this.loading = false;
     },
     async cityPageChange() {
       this.getCity();
     },
     async getCityTotalPage(searchType, city = "all") {
-      if (searchType === "all") {
-        this.cityTotalPage = await getCityNumber("all");
-      } else if (searchType === "search") {
-        const c = city === "全部" ? "all" : city;
-        this.cityTotalPage = await getCityNumber("search", c);
-      }
+      // if (searchType === "all") {
+      //   this.cityTotalPage = (await getCityNumber("all"));
+      // } else if (searchType === "search") {
+      //   const c = city === "全部" ? "all" : city;
+      //   this.cityTotalPage = (await getCityNumber("search", c));
+      // }
     },
     async citySortChange(ob) {
       this.cityCurSortColumn = ob.prop;
@@ -213,8 +208,7 @@ export default {
   },
   async mounted() {
     this.getCityTotalPage("all");
-    this.getCity(); //得到“城市管理”的表单数据
-    this.cityList = (await getCityOptions()).data.d;
+    this.getCity(); //得到“城市管理”的表单数;
   }
 };
 </script>

@@ -1,14 +1,14 @@
 import axios from "axios";
 
 // axios.defaults.baseURL = 'https://www.easy-mock.com/mock/5c22475a4e21841210a7015f';
- //axios.defaults.baseURL = 'http://139.217.219.205:8080';
+//axios.defaults.baseURL = 'http://139.217.219.205:8080';
 //axios.defaults.baseURL = 'http://localhost:5001';
-axios.defaults.baseURL=IPCONFIG;
+axios.defaults.baseURL = IPCONFIG;
 // axios.defaults.baseURL='https://localhost:44373';
 //带cookie
 //axios.defaults.withCredentials = true;
-axios.defaults.headers =  {
-  'Content-Type' : 'application/json; charset=utf-8',
+axios.defaults.headers = {
+  'Content-Type': 'application/json; charset=utf-8',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Credentials': true,
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
@@ -21,9 +21,9 @@ export function loginApi(form) {
   });
 }
 
-export function signupApi({name, pwd, type,}) {
+export function signupApi({ name, pwd, type, }) {
   return axios.post('/api/register', {
-    ...{name, pwd, type,}
+    ...{ name, pwd, type, }
   });
 }
 
@@ -44,11 +44,11 @@ export function getDevicePropertyData(deviceid, propertyid) {
 }
 
 export function getDeviceMultiPropertyData(deviceId, properties) {
-  return axios.post(`/api/deviceData/multipleLineChart/${deviceId}`, {...properties});
+  return axios.post(`/api/deviceData/multipleLineChart/${deviceId}`, { ...properties });
 }
 
 //网关管理
-export function getGatewaysApi(searchType='all', page=1, column='id', order='asc', city, factory, workshop) {
+export function getGatewaysApi(searchType = 'all', page = 1, column = 'id', order = 'asc', city, factory, workshop) {
   return axios.get(`/api/gateway?searchType=${searchType}&page=${page}&sortColumn=${column}&order=${order}&city=${city}&factory=${factory}&workshop=${workshop}`);
 }
 
@@ -57,7 +57,7 @@ export function deleteGatewayApi(id) {
 }
 
 export function deleteMultipleGatewayApi(id) {
-  return axios.post(`/api/gateway/batch/gateways`, {...id});
+  return axios.post(`/api/gateway/batch/gateways`, { ...id });
 }
 
 export function updateGatewayApi(data) {
@@ -67,7 +67,7 @@ export function updateGatewayApi(data) {
 }
 
 export function updateThreshold(id, data) {
-  return axios.put(`/api/threshold/${id}`, {...data});
+  return axios.put(`/api/threshold/${id}`, { ...data });
 }
 
 export function addGatewayApi(data) {
@@ -85,15 +85,15 @@ export function searchGatewaysApi(data) {
 }
 
 //设备管理
-export function getDevicesApi(searchType='all', page=1, column='id', order='asc', city, factory, workshop) {
+export function getDevicesApi(searchType = 'all', page = 1, column = 'id', order = 'asc', city, factory, workshop) {
   return axios.get(`/api/device?searchType=${searchType}&page=${page}&sortColumn=${column}&order=${order}&city=${city}&factory=${factory}&workshop=${workshop}`);
 }
 
-export function getDeviceNumber(searchType, city='all', factory='all', workshop='all') {
+export function getDeviceNumber(searchType, city = 'all', factory = 'all', workshop = 'all') {
   return axios.get(`/api/device/number?searchType=${searchType}&city=${city}&factory=${factory}&workshop=${workshop}`);
 }
 
-export function getGatewayNumber(searchType, city='all', factory='all', workshop='all') {
+export function getGatewayNumber(searchType, city = 'all', factory = 'all', workshop = 'all') {
   return axios.get(`/api/gateway/number?searchType=${searchType}&city=${city}&factory=${factory}&workshop=${workshop}`);
 }
 
@@ -106,18 +106,23 @@ export function deleteDeviceApi(id) {
 }
 
 export function deleteMultipleDeviceApi(id) {
-  return axios.post(`/api/device/batch/devices`, {...id});
+  return axios.post(`/api/device/batch/devices`, { ...id });
 }
 
-export function getCity(page=1, column='id', order='asc', pageMode) {
-  return axios.get(`/api/city?&page=${page}&sortColumn=${column}&order=${order}&pageMode=${pageMode}`);
+export const getCity = async (FilterText = "", Sorting = 'id ASC', MaxResultCount = 6, SkipCount = 0) => {
+  var response = await axios.get(`/api/services/app/City/GetAll?&FilterText=${FilterText}&Sorting=${Sorting}&MaxResultCount=${MaxResultCount}&SkipCount=${SkipCount}`);
+  if (response.data.success === true) {
+    return response.data.result;
+  } else {
+    console.log(response.data.error)
+  }
 }
 
-export function getFactory(page=1, column='id', order='asc', pageMode) {
+export function getFactory(page = 1, column = 'id', order = 'asc', pageMode) {
   return axios.get(`/api/factory?&page=${page}&sortColumn=${column}&order=${order}&pageMode=${pageMode}`);
 }
 
-export function getWorkshop(page=1, column='id', order='asc', pageMode) {
+export function getWorkshop(page = 1, column = 'id', order = 'asc', pageMode) {
   return axios.get(`/api/workshop?&page=${page}&sortColumn=${column}&order=${order}&pageMode=${pageMode}`);
 }
 
@@ -145,7 +150,7 @@ export function updateDeviceApi(data) {
 }
 
 export function addDeviceApi(data) {
-  return axios.post(`/api/device`, {...data});
+  return axios.post(`/api/device`, { ...data });
 }
 
 export function searchDevicesByDeviceNameApi(data) {
@@ -171,7 +176,7 @@ export function getDeviceApi(id) {
 }
 
 //设备数据
-export function getDevicesDataApi(searchType='all', page=1, sortColumn='Id', order='asc', deviceId) {
+export function getDevicesDataApi(searchType = 'all', page = 1, sortColumn = 'Id', order = 'asc', deviceId) {
   return axios.get(`/api/deviceData?searchType=${searchType}&page=${page}&sortColumn=${sortColumn}&order=${order}&deviceId=${deviceId}`);
 }
 
@@ -400,7 +405,7 @@ export function getAuthorities(userID) {
   return axios.get(`/api/getAuthorities/${userID}`)
 }
 
-export function getFields(searchType='all', page=1, column='device', order='asc', property, pageMode) {
+export function getFields(searchType = 'all', page = 1, column = 'device', order = 'asc', property, pageMode) {
   return axios.get(`/api/field?searchType=${searchType}&page=${page}&sortColumn=${column}&order=${order}&property=${property}&pageMode=${pageMode}`);
 }
 
@@ -409,27 +414,32 @@ export function getFieldPageNumber(searchType, property) {
 }
 
 export function addRule(rule) {
-  return axios.post(`/api/threshold`, {...rule});
+  return axios.post(`/api/threshold`, { ...rule });
 }
 
-export function getAllRules(searchType, deviceName='all', page='1', order='asc', sortColumn='id') {
+export function getAllRules(searchType, deviceName = 'all', page = '1', order = 'asc', sortColumn = 'id') {
   console.log(`/api/threshold?searchType=${searchType}&deviceName=${deviceName}&page=${page}&order=${order}&sortColumn=${sortColumn}`);
   return axios.get(`/api/threshold?searchType=${searchType}&deviceName=${deviceName}&page=${page}&order=${order}&sortColumn=${sortColumn}`);
 }
 
-export function getRuleNumber(searchType, deviceName='all') {
+export function getRuleNumber(searchType, deviceName = 'all') {
   return axios.get(`/api/threshold/number?searchType=${searchType}&deviceName=${deviceName}`);
 }
 
-export function getCityOptions() {
-  return axios.get(`/api/city/cityOptions`);
+export const getCityOptions = async () => {
+  var response = await axios.get(`/api/services/app/City/GetCityOptions`);
+  if (response.data.success === true) {
+    return response.data.result;
+  } else {
+    console.log(response.data.error)
+  }
 }
 
 export function getFactoryOptions(cityname) {
   return axios.get(`/api/factory/factoryOptions/${cityname}`);
 }
 
-export function getWorkshopOptions(cityName,factoryname) {
+export function getWorkshopOptions(cityName, factoryname) {
   return axios.get(`/api/workshop/workshopOptions/${cityName}/${factoryname}`);
 }
 
@@ -475,18 +485,18 @@ export function getSeverity() {
 
 export function addCity(city) {
   console.log(city)
-  return axios.post(`/api/city`, {...city});
+  return axios.post(`/api/city`, { ...city });
 }
 
 export function addFactory(factory) {
-  return axios.post(`/api/factory`, {...factory});
+  return axios.post(`/api/factory`, { ...factory });
 }
 
 export function addWorkshop(workshop) {
-  return axios.post(`/api/workshop`, {...workshop});
+  return axios.post(`/api/workshop`, { ...workshop });
 }
 
-export function searchUsers(username){
+export function searchUsers(username) {
   return axios.get(`/api/user/name/${username}`);
 }
 
@@ -494,8 +504,8 @@ export function getUserByName(username) {
   return axios.get(`/api/user/username/${username}`);
 }
 
-export function updatePassword(username, password){
-  return axios.post(`/api/user/password/${username}`, {...password});
+export function updatePassword(username, password) {
+  return axios.post(`/api/user/password/${username}`, { ...password });
 }
 
 export function getAlarmInfoByDeviceid(deviceid) {
@@ -503,7 +513,7 @@ export function getAlarmInfoByDeviceid(deviceid) {
 }
 
 export function createNewField(field) {
-  return axios.post(`/api/field`, {...field});
+  return axios.post(`/api/field`, { ...field });
 }
 
 export function createDeviceType(type) {
@@ -544,7 +554,7 @@ export function deleteRule(id) {
 }
 
 export function batchDeleteThresholds(data) {
-  return axios.post('/api/threshold/batch/thresholds', {...data});
+  return axios.post('/api/threshold/batch/thresholds', { ...data });
 }
 
 export function deleteDeviceData(id) {
@@ -552,14 +562,14 @@ export function deleteDeviceData(id) {
 }
 
 export function batchDeleteDeviceData(data) {
-  return axios.post(`/api/deviceData/batch/deviceData`, {str: data});
+  return axios.post(`/api/deviceData/batch/deviceData`, { str: data });
 }
 
 export function updateDeviceData(id, data) {
-  return axios.put(`/api/deviceData/${id}`, {...data});
+  return axios.put(`/api/deviceData/${id}`, { ...data });
 }
 
-export function getAlarmInfoNumber(searchType, deviceId){
+export function getAlarmInfoNumber(searchType, deviceId) {
   return axios.get(`/api/alarmInfo/number?searchType=${searchType}&deviceId=${deviceId}`);
 }
 
@@ -573,7 +583,7 @@ export function updateAlarmInfoProcessed(id) {
 
 //配置管理-地域配置
 export function getCityNumber(searchType, cityName = 'all') {
-  return axios.get(`/api/city/number?searchType=${searchType}&cityName=${cityName}`);
+  return axios.get(`/api/services/app/City/GetNumber`);
 }
 
 export function getFactoryNumber(searchType, factoryName = 'all') {
@@ -585,7 +595,7 @@ export function getWorkshopNumber(searchType, workshopName = 'all') {
 }
 
 export function updateCityApi(id, data) {
-  return axios.put(`/api/city/${id}`, {...data});
+  return axios.put(`/api/city/${id}`, { ...data });
 }
 
 export function deleteCity(id) {
@@ -597,7 +607,7 @@ export function deleteFactory(id) {
 }
 
 export function updateFactory(id, data) {
-  return axios.put(`/api/factory/${id}`, {...data});
+  return axios.put(`/api/factory/${id}`, { ...data });
 }
 
 export function deleteWorkshop(id) {
@@ -605,7 +615,7 @@ export function deleteWorkshop(id) {
 }
 
 export function updateWorkshop(id, data) {
-  return axios.put(`/api/workshop/${id}`, {...data});
+  return axios.put(`/api/workshop/${id}`, { ...data });
 }
 
 export function getCityByCityName(cityName) {
@@ -704,7 +714,7 @@ export function getCityFactoryTree() {
   return axios.get(`/api/city/cityFactoryTree`);
 }
 
-export function getReportByRegion(cityName,factoryName, t) {
+export function getReportByRegion(cityName, factoryName, t) {
   return axios.post(`/api/report/byRegion?cityName=${cityName}&factoryName=${factoryName}`, t);
 }
 
@@ -720,7 +730,7 @@ export function getReportByType(t) {
   return axios.post(`/api/report/byType`, t);
 }
 
-export function getDetailedDeviceType(searchType='all', page=1, column='id', order='asc', device, pageMode) {
+export function getDetailedDeviceType(searchType = 'all', page = 1, column = 'id', order = 'asc', device, pageMode) {
   return axios.get(`/api/detailedDeviceType?searchType=${searchType}&page=${page}&sortColumn=${column}&order=${order}&device=${device}&pageMode=${pageMode}`);
 }
 
@@ -749,7 +759,7 @@ export function getAllTags() {
 }
 
 export function setDeviceTags(id, tags) {
-  return axios.post(`/api/device/deviceTag/${id}`, {str: tags});
+  return axios.post(`/api/device/deviceTag/${id}`, { str: tags });
 }
 
 export function addTag(tagName) {
@@ -761,11 +771,11 @@ export function deleteTag(tagName) {
 }
 
 export function addDeviceType(deviceType) {
-  return axios.post(`/api/deviceType`, {...deviceType});
+  return axios.post(`/api/deviceType`, { ...deviceType });
 }
 
 export function updateDeviceType(id, deviceType) {
-  return axios.put(`/api/deviceType/${id}`, {...deviceType})
+  return axios.put(`/api/deviceType/${id}`, { ...deviceType })
 }
 
 export function deleteDeviceType(id) {
@@ -773,7 +783,7 @@ export function deleteDeviceType(id) {
 }
 
 export function updateField(id, property) {
-  return axios.put(`/api/field/${id}`, {...property});
+  return axios.put(`/api/field/${id}`, { ...property });
 }
 
 export function deleteField(id) {
@@ -801,7 +811,7 @@ export function getGatewayIdExist(gatewayId) {
 }
 
 export function batchDeleteAlarmInfo(str) {
-  return axios.post(`/api/alarmInfo/batchDelete`, {...str});
+  return axios.post(`/api/alarmInfo/batchDelete`, { ...str });
 }
 
 //平台三级名称配置
@@ -814,16 +824,16 @@ export function deleteName(id) {
 }
 
 export function addName(newName) {
-  return axios.post(`/api/theme`,{...newName})
+  return axios.post(`/api/theme`, { ...newName })
 
 }
 
 export function updateName(id, updateName) {
-  return axios.put(`/api/theme/${id}`,{...updateName})
+  return axios.put(`/api/theme/${id}`, { ...updateName })
 }
 
 export function changeGlobalName(id, selection) {
-  return axios.put(`/api/theme/allUserTheme/${id}`,{...selection})
+  return axios.put(`/api/theme/allUserTheme/${id}`, { ...selection })
 }
 
 export function getNewName(id) {
@@ -875,6 +885,6 @@ export function getMonthAggregateData(deviceName, fieldId, time) {
 }
 
 //workshop
-export function listWorkshopName(cityName,factoryName){
+export function listWorkshopName(cityName, factoryName) {
   return axios.get(`/api/Workshop/workshopNameList/${cityName}/${factoryName}`);
 }
