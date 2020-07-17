@@ -7,8 +7,8 @@
       @select="handleSelect"
     >
       <el-menu-item index="1">城市</el-menu-item>
-      <el-menu-item index="2">实验室</el-menu-item>
-      <el-menu-item index="3">实验楼</el-menu-item>
+      <el-menu-item index="2">实验楼</el-menu-item>
+      <el-menu-item index="3">实验室</el-menu-item>
     </el-menu>
     <div v-if="currentPage==='1'">
       <level1></level1>

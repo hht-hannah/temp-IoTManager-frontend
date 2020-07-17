@@ -589,7 +589,7 @@ export default {
   /* border: 1px solid #DCDFE6; */
   /* font-size: 14px; */
   padding-top: 10px;
-  height: 600px;
+  height: 500px;
   background-color: transparent;
 }
 </style>

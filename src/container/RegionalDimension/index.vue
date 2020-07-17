@@ -1,15 +1,17 @@
 <template>
   <div class="regional-dimension-container">
     <el-row>
-      <el-col :span="3">
-        <el-tree
-          v-loading="treeLoading"
-          :data="treeData"
-          :props="defaultProps"
-          @node-click="handleNodeClick"
-        ></el-tree>
+      <el-col :span="4">
+        <div class="monitoring-tree-container">
+          <el-tree
+            v-loading="treeLoading"
+            :data="treeData"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+          ></el-tree>
+        </div>
       </el-col>
-      <el-col :span="21">
+      <el-col :span="20">
         <div class="head-container">
           <span class="demonstration">选择时间</span>
           <el-date-picker
@@ -59,8 +61,10 @@ export default {
       histogramOption: {
         xAxis: {
           type: "category",
-          axisLabel: {
-            interval: 0
+          axisLine: {
+            lineStyle: {
+              color: "#B4B4B4"
+            }
           },
           data: []
         },
@@ -74,9 +78,56 @@ export default {
           show: true,
           data: ["平均在线时间", "告警次数", "设备数量", "设备综合效率"]
         },
-        yAxis: {
-          type: "value"
-        },
+        yAxis: [
+          {
+            name: "平均在线时间",
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [3, 4, 50, 6]
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                type: "dashed",
+                color: "#B4B4B4"
+              }
+            },
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: "#B4B4B4"
+              }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
+            }
+          },
+          {
+            name: "设备综合效率",
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [50, 4, 5, 6]
+            },
+            splitLine: {
+              show: false
+            },
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: "#B4B4B4"
+              }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
+            }
+          }
+        ],
         series: [],
         toolbox: {
           show: true,
@@ -177,48 +228,157 @@ export default {
       this.chart.setOption(this.histogramOption);
     },
     async handleNodeClick(data) {
-      console.log("handleNodeClick");
       console.log(data);
       this.chartLoading = true;
       if (data.factoryName) {
         this.curFactory = data.factoryName;
         this.curCity = data.cityName;
         console.log(data.factoryName);
-        if (this.selectedDate.length > 1) {
-          const result = (
-            await getReportByRegion(data.cityName, data.factoryName, {
-              startTime: this.selectedDate[0],
-              endTime: this.selectedDate[1]
-            })
-          ).data.d;
-          this.histogramOption.xAxis.data = result["xAxis"];
-          this.histogramOption.series = result["series"];
-          this.chart.setOption(this.histogramOption, true);
+        var result = [];
+        if (this.selectedDate !== null && this.selectedDate.length > 1) {
+          result = (await getReportByRegion(data.cityName, data.factoryName, {
+            startTime: this.selectedDate[0],
+            endTime: this.selectedDate[1]
+          })).data.d;
         } else {
-          const result = (
-            await getReportByRegion(data.cityName, data.factoryName, {
-              startTime: new Date("1980/1/1"),
-              endTime: new Date("2030/12/31")
-            })
-          ).data.d;
-          this.histogramOption.xAxis.data = result["xAxis"];
-          this.histogramOption.series = result["series"];
-          this.chart.setOption(this.histogramOption, true);
+          result = (await getReportByRegion(data.cityName, data.factoryName, {
+            startTime: new Date("1980/1/1"),
+            endTime: new Date("2030/12/31")
+          })).data.d;
         }
+        this.histogramOption.xAxis.data = result["xAxis"];
+        const color1 = [
+          "#409EFF",
+          "#FFDD33",
+          "#669966",
+          "#7B76D8",
+          "#6EDBCF",
+          "#FFAD60",
+          "#E3787E"
+        ];
+        const color2 = [
+          "#D9ECFF",
+          "#FFF5C2",
+          "#E5F5E5",
+          "#DDDDF7",
+          "#DFF8F5",
+          "#FFEFDF",
+          "#F9D6D8"
+        ];
+        this.histogramOption.series = [];
+        result["series"].forEach((s, index) => {
+          this.histogramOption.series.push({
+            name: s.name,
+            data: s.data,
+            type: "bar",
+            yAxisIndex: s.name === "设备综合效率" ? 1 : 0,
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: "bold",
+              position: "top",
+              color: color1[index % 7]
+            },
+            itemStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(
+                  0,
+                  0,
+                  0,
+                  1,
+                  [
+                    {
+                      offset: 0,
+                      color: color1[index % 7] // 0% 处的颜色
+                    },
+                    {
+                      offset: 1,
+                      color: color2[index % 7] // 100% 处的颜色
+                    }
+                  ],
+                  false
+                ),
+                barBorderRadius: [30, 30, 0, 0]
+              }
+            }
+          });
+        });
+        this.chart.setOption(this.histogramOption, true);
       }
       this.chartLoading = false;
     },
     async handleTimeChange() {
+      var result = [];
       if (this.curFactory !== "") {
         this.chartLoading = true;
-        const result = (
-          await getReportByRegion(this.curCity, this.curFactory, {
+        if (this.selectedDate !== null && this.selectedDate.length > 1) {
+          result = (await getReportByRegion(this.curCity, this.curFactory, {
             startTime: this.selectedDate[0],
             endTime: this.selectedDate[1]
-          })
-        ).data.d;
+          })).data.d;
+        } else {
+          result = (await getReportByRegion(this.curCity, this.curFactory, {
+            startTime: new Date("1980/1/1"),
+            endTime: new Date("2030/12/31")
+          })).data.d;
+        }
         this.histogramOption.xAxis.data = result["xAxis"];
-        this.histogramOption.series = result["series"];
+        const color1 = [
+          "#409EFF",
+          "#FFDD33",
+          "#669966",
+          "#7B76D8",
+          "#6EDBCF",
+          "#FFAD60",
+          "#E3787E"
+        ];
+        const color2 = [
+          "#D9ECFF",
+          "#FFF5C2",
+          "#E5F5E5",
+          "#DDDDF7",
+          "#DFF8F5",
+          "#FFEFDF",
+          "#F9D6D8"
+        ];
+        this.histogramOption.series = [];
+        result["series"].forEach((s, index) => {
+          this.histogramOption.series.push({
+            name: s.name,
+            data: s.data,
+            type: "bar",
+            yAxisIndex: s.name === "设备综合效率" ? 1 : 0,
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: "bold",
+              position: "top",
+              color: color1[index % 7]
+            },
+            itemStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(
+                  0,
+                  0,
+                  0,
+                  1,
+                  [
+                    {
+                      offset: 0,
+                      color: color1[index % 7] // 0% 处的颜色
+                    },
+                    {
+                      offset: 1,
+                      color: color2[index % 7] // 100% 处的颜色
+                    }
+                  ],
+                  false
+                ),
+                barBorderRadius: [30, 30, 0, 0]
+              }
+            }
+          });
+        });
         this.chart.setOption(this.histogramOption, true);
         this.chartLoading = false;
       }
@@ -228,26 +388,24 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/scss/variaties.scss";
 .regional-dimension-container {
-  .head-container {
+  .report-statistic-daily-histogram {
+    height: 400px;
+    width: 100%;
+  }
+
+  .el-card {
     margin: 20px;
   }
 
-  .report-statistic-daily-histogram {
-    height: 500px;
-  }
-
-  .report-statistic-daily-piechart {
-    height: 400px;
-  }
-
   .el-tree {
-    margin-right: 20px;
+    /* border: 1px solid #DCDFE6; */
+    /* font-size: 14px; */
     padding-top: 10px;
-    height: 1000px;
-    // background-color: rgba(64, 158, 255, 0.1);
+    height: 500px;
+    background-color: transparent;
   }
-
 }
 </style>
 

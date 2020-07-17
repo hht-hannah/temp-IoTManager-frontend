@@ -15,21 +15,19 @@
     <!--<el-step title="资源类别统计" icon="el-icon-upload"></el-step>-->
     <!--</el-steps>-->
     <el-row>
-      <el-col :span="12">
+      <el-col :span="16">
+        <el-card>
+          <div v-loading="chartLoading" class="report-statistic-daily-histogram"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
         <el-card>
           <div v-loading="chartLoading" class="report-statistic-daily-piechart1"></div>
         </el-card>
-      </el-col>
-      <el-col :span="12">
         <el-card>
           <div v-loading="chartLoading" class="report-statistic-daily-piechart2"></div>
         </el-card>
       </el-col>
-    </el-row>
-    <el-row>
-      <el-card>
-        <div v-loading="chartLoading" class="report-statistic-daily-histogram"></div>
-      </el-card>
     </el-row>
     <el-row>
       <div v-show="showSecondaryChart" class="report-statistic-daily-secondary-chart">
@@ -47,7 +45,7 @@ import { getReportByType } from "../../api/api";
 
 export default {
   name: "DeviceTypeDimension",
-  data()  {
+  data() {
     return {
       chartLoading: false,
       selectedType: "",
@@ -57,8 +55,10 @@ export default {
       histogramOption: {
         xAxis: {
           type: "category",
-          axisLabel: {
-            interval: 0
+          axisLine: {
+            lineStyle: {
+              color: "#B4B4B4"
+            }
           },
           data: []
         },
@@ -74,24 +74,51 @@ export default {
         },
         yAxis: [
           {
-            type: "value",
             name: "平均在线时间",
-            splitNumber: 6
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [3, 4, 50, 6]
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                type: "dashed",
+                color: "#B4B4B4"
+              }
+            },
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: "#B4B4B4"
+              }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
+            }
           },
           {
-            type: "value",
             name: "设备综合效率",
-            position: "right",
-            max: 1,
-            min: 0,
-            splitNumber: 6,
-            axisLabel: {
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [50, 4, 5, 6]
+            },
+            splitLine: {
+              show: false
+            },
+            axisLine: {
               show: true,
-              showMinLabel: true,
-              showMaxLabel: true,
-              formatter: function(value) {
-                return value;
+              lineStyle: {
+                color: "#B4B4B4"
               }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
             }
           }
         ],
@@ -100,13 +127,71 @@ export default {
             name: "平均在线时间",
             data: [],
             yAxisIndex: 0,
-            type: "bar"
+            type: "bar",
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: "bold",
+              position: "top",
+              color: "#409EFF"
+            },
+            itemStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(
+                  0,
+                  0,
+                  0,
+                  1,
+                  [
+                    {
+                      offset: 0,
+                      color: "#409EFF" // 0% 处的颜色
+                    },
+                    {
+                      offset: 1,
+                      color: "#D9ECFF" // 100% 处的颜色
+                    }
+                  ],
+                  false
+                ),
+                barBorderRadius: [30, 30, 0, 0]
+              }
+            }
           },
           {
             name: "设备综合效率",
             data: [],
             yAxisIndex: 1,
-            type: "bar"
+            type: "bar",
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: "bold",
+              position: "top",
+              color: "#FFDD33"
+            },
+            itemStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(
+                  0,
+                  0,
+                  0,
+                  1,
+                  [
+                    {
+                      offset: 0,
+                      color: "#FFDD33" // 0% 处的颜色
+                    },
+                    {
+                      offset: 1,
+                      color: "#FFF5C2" // 100% 处的颜色
+                    }
+                  ],
+                  false
+                ),
+                barBorderRadius: [30, 30, 0, 0]
+              }
+            }
           }
         ],
         toolbox: {
@@ -185,8 +270,28 @@ export default {
       pieChartOption: {
         title: {
           text: "报警次数",
-          x: "center"
+          subtext: 0,
+          textStyle: {
+            color: "#000",
+            fontSize: 20,
+            align: "center"
+          },
+          subtextStyle: {
+            fontSize: 16,
+            color: ["#C0C0C0"]
+          },
+          x: "center",
+          y: "center"
         },
+        color: [
+          "#409EFF",
+          "#FFDD33",
+          "#669966",
+          "#7B76D8",
+          "#6EDBCF",
+          "#FFAD60",
+          "#E3787E"
+        ],
         tooltip: {
           trigger: "item",
           formatter: "{a} <br/>{b} : {c} ({d}%)"
@@ -201,10 +306,10 @@ export default {
         },
         series: [
           {
-            name: "设备数",
+            name: "报警次数",
             type: "pie",
-            radius: "50%",
             selectedMode: "single",
+            radius: ["50%", "70%"],
             label: {
               position: "outer",
               alignTo: "edge",
@@ -222,9 +327,29 @@ export default {
       },
       pieChartOption2: {
         title: {
-          text: "设备数",
-          x: "center"
+          text: "设备数量",
+          subtext: 0,
+          textStyle: {
+            color: "#000",
+            fontSize: 20,
+            align: "center"
+          },
+          subtextStyle: {
+            fontSize: 16,
+            color: ["#C0C0C0"]
+          },
+          x: "center",
+          y: "center"
         },
+        color: [
+          "#409EFF",
+          "#FFDD33",
+          "#669966",
+          "#7B76D8",
+          "#6EDBCF",
+          "#FFAD60",
+          "#E3787E"
+        ],
         tooltip: {
           trigger: "item",
           formatter: "{a} <br/>{b} : {c} ({d}%)"
@@ -239,9 +364,9 @@ export default {
         },
         series: [
           {
-            name: "饼图",
+            name: "设备数",
             type: "pie",
-            radius: "50%",
+            radius: ["50%", "70%"],
             selectedMode: "single",
             label: {
               normal: {
@@ -266,27 +391,28 @@ export default {
     this.handleDateChange();
   },
   methods: {
-   initTypeChart() {
+    initTypeChart() {
       var vm = this;
       this.chart = echarts.init(
         document.getElementsByClassName("report-statistic-daily-histogram")[0]
       );
       // 把配置和数据放这里
       this.chart.setOption(this.histogramOption);
-      this.chart.on("click", async(params) => {
-
+      this.chart.on("click", async params => {
         vm.showSecondaryChart = true;
         vm.chartLoading = true;
 
-        const result = (
-          await getReportByType({
-            startTime: new Date("1980/1/1"),
-            endTime: new Date("2030/12/31")
-          })
-        ).data.d;
-        console.log(result)
+        const result = (await getReportByType({
+          startTime: new Date("1980/1/1"),
+          endTime: new Date("2030/12/31")
+        })).data.d;
+        console.log(result);
         vm.pieChartOption2.title.text = params.name;
-        vm.secondaryChart = echarts.init( document.getElementsByClassName( "report-statistic-daily-secondary-chart1")[0] );
+        vm.secondaryChart = echarts.init(
+          document.getElementsByClassName(
+            "report-statistic-daily-secondary-chart1"
+          )[0]
+        );
         console.log(vm.pieChartOption2);
         vm.secondaryChart.setOption(vm.pieChartOption2);
         vm.chartLoading = false;
@@ -307,44 +433,45 @@ export default {
       this.pieChart2.setOption(this.pieChartOption2);
     },
     async handleDateChange() {
+      var result = [];
       this.chartLoading = true;
-      if (this.selectedDate.length > 1) {
-        const result = (
-          await getReportByType({
-            startTime: this.selectedDate[0],
-            endTime: this.selectedDate[1]
-          })
-        ).data.d;
-
-        this.histogramOption.xAxis.data = result["xAxis"];
-        this.histogramOption.series = result["lineChartSeries"];
-        this.chart.setOption(this.histogramOption);
-
-        this.pieChartOption.series[0].data = result["pieChart1Series"];
-        this.pieChart1.setOption(this.pieChartOption);
-        console.log(result);
-
-        this.pieChartOption2.series[0].data = result["pieChart2Series"];
-        this.pieChart2.setOption(this.pieChartOption2);
+      if (this.selectedDate !== null && this.selectedDate.length > 1) {
+        result = (await getReportByType({
+          startTime: this.selectedDate[0],
+          endTime: this.selectedDate[1]
+        })).data.d;
       } else {
-        const result = (
-          await getReportByType({
-            startTime: new Date("1980/1/1"),
-            endTime: new Date("2030/12/31")
-          })
-        ).data.d;
-
-        console.log(result)
-        this.histogramOption.xAxis.data = result["xAxis"];
-        this.histogramOption.series = result["lineChartSeries"];
-        this.chart.setOption(this.histogramOption);
-
-        this.pieChartOption.series[0].data = result["pieChart1Series"];
-        this.pieChart1.setOption(this.pieChartOption);
-
-        this.pieChartOption2.series[0].data = result["pieChart2Series"];
-        this.pieChart2.setOption(this.pieChartOption2);
+        result = (await getReportByType({
+          startTime: new Date("1980/1/1"),
+          endTime: new Date("2030/12/31")
+        })).data.d;
       }
+      
+      this.histogramOption.xAxis.data = result["xAxis"];
+      result["lineChartSeries"].forEach(r => {
+        if (r["name"] === "平均在线时间") {
+          this.histogramOption.series[0].data = r.data;
+        } else if (r["name"] === "设备综合效率") {
+          this.histogramOption.series[1].data = r.data;
+        }
+      });
+      this.chart.setOption(this.histogramOption);
+
+      var total1 = 0;
+      this.pieChartOption.series[0].data = result["pieChart1Series"];
+      result["pieChart1Series"].forEach(r => {
+        total1 += r.value;
+      });
+      this.pieChartOption.title.subtext = total1;
+      this.pieChart1.setOption(this.pieChartOption);
+
+      this.pieChartOption2.series[0].data = result["pieChart2Series"];
+            var total2 = 0;
+      result["pieChart2Series"].forEach(r => {
+        total2 += r.value;
+      });
+      this.pieChartOption2.title.subtext = total2;
+      this.pieChart2.setOption(this.pieChartOption2);
       this.chartLoading = false;
     }
   }
@@ -352,20 +479,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/scss/variaties.scss";
 .device-type-dimension-container {
-  .head-container {
-    margin: 20px 50px;
-  }
-
   .report-statistic-daily-histogram {
-    height: 500px;
+    height: 520px;
   }
 
   .report-statistic-daily-piechart1 {
-    height: 400px;
+    height: 240px;
   }
   .report-statistic-daily-piechart2 {
-    height: 400px;
+    height: 240px;
   }
 
   .report-statistic-daily-secondary-chart {

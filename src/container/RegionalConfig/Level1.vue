@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <div class="search-container">
@@ -13,7 +12,7 @@
           <el-button type="primary" @click="searchByCity">搜索</el-button>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_CREATE'])">
-          <el-button type="primary" @click="newCityFormVisible = true">添加{{GLOBAL.firstLevel}}</el-button>
+          <el-button type="primary" @click="cityAddVisible = true">添加{{GLOBAL.firstLevel}}</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -57,51 +56,16 @@
         layout="prev, pager, next"
         :total="cityTotalPage"
         :current-page.sync="cityCurPage"
-        :page-size="6"
+        :page-size="pageSize"
         @current-change="cityPageChange()"
       ></el-pagination>
     </div>
-    <br />
-
-    <el-dialog :title="'修改'+GLOBAL.firstLevel" :visible.sync="updateCityFormVisible">
-      <el-form :model="updateCityData" ref="updateCityData">
-        <el-form-item
-          :label="GLOBAL.firstLevel"
-          prop="cityName"
-          label-width="120px"
-          :rules="[{required: true, message:GLOBAL.firstLevel+ '不能为空'}]"
-        >
-          <el-input v-model="updateCityData.cityName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="updateCityData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="updateCityFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="updateCity('updateCityData')">确 定</el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog :title="'添加'+GLOBAL.firstLevel" :visible.sync="newCityFormVisible">
-      <el-form :model="newCityData" ref="newCityData">
-        <el-form-item
-          :label="GLOBAL.firstLevel"
-          prop="cityName"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.firstLevel+'不能为空'}]"
-        >
-          <el-input v-model="newCityData.cityName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="newCityData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="newCityFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addCity('newCityData')">确 定</el-button>
-      </div>
-    </el-dialog>
+    <AddCity :cityAddVisible.sync="cityAddVisible" :onClose="onChangeCityClose"></AddCity>
+    <UpdateCity
+      :cityUpdateVisible.sync="cityUpdateVisible"
+      :onClose="onChangeCityClose"
+      :defaultData="updateCityData"
+    ></UpdateCity>
   </div>
 </template>
 
@@ -110,18 +74,19 @@ import {
   getCityOptions,
   getCity,
   getCityNumber,
-  updateCityApi,
   deleteCity,
-  addCity,
   getCityByCityName,
   getCityAffiliateFactory,
   getCityAffiliateDevice,
   getCityAffiliateGateway
 } from "../../api/api";
+import AddCity from "../../components/Dialogues/AddCity";
+import UpdateCity from "../../components/Dialogues/UpdateCity";
 import { checkAuth } from "../../common/util";
 
 export default {
   name: "Level1",
+  components: { AddCity, UpdateCity },
   data() {
     return {
       //city-table-container
@@ -129,23 +94,13 @@ export default {
       cityCurPage: 1,
       loading: false,
       cityData: [],
+      pageSize: 6,
       //city修改el-dialog
       cityList: [],
+      cityAddVisible: false,
       searchCity: "",
-      updateCityData: {
-        cityName: "",
-        remark: "",
-        createTime: "",
-        updateTime: "",
-        longitude: "",
-        latitude: ""
-      },
-      updateCityFormVisible: false,
-      newCityData: {
-        cityName: "",
-        remark: ""
-      },
-      newCityFormVisible: false,
+      updateCityData: [],
+      cityUpdateVisible: false,
       changeCityForm: "",
       cityCurSortColumn: "",
       cityCurOrder: "",
@@ -168,7 +123,7 @@ export default {
     async openCityUpdateForm(row) {
       //打开更新表单
       this.updateCityData = JSON.parse(JSON.stringify(row));
-      this.updateCityFormVisible = true;
+      this.cityUpdateVisible = true;
     },
     async deleteCity(row) {
       const affiliateFactory = (await getCityAffiliateFactory(row.id)).data.d;
@@ -210,7 +165,7 @@ export default {
     },
     async getCity() {
       this.loading = true;
-      const orderMap = { ascending: "asc", descending: "desc" };
+      const orderMap = { ascending: "id ASC", descending: "id DESC" };
       const columnMap = {
         id: "id",
         longitude: "longitude",
@@ -241,10 +196,10 @@ export default {
     },
     async getCityTotalPage(searchType, city = "all") {
       if (searchType === "all") {
-        this.cityTotalPage = (await getCityNumber("all")).data.d;
+        this.cityTotalPage = await getCityNumber("all");
       } else if (searchType === "search") {
         const c = city === "全部" ? "all" : city;
-        this.cityTotalPage = (await getCityNumber("search", c)).data.d;
+        this.cityTotalPage = await getCityNumber("search", c);
       }
     },
     async citySortChange(ob) {
@@ -252,52 +207,8 @@ export default {
       this.cityCurOrder = ob.order;
       this.getCity();
     },
-
-    async updateCity(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            console.log(this.updateCityData);
-            const data = await updateCityApi(
-              this.updateCityData.id,
-              this.updateCityData
-            );
-            this.updateCityFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "更新成功",
-                type: "success"
-              });
-              //再获取一次所有城市信息
-              this.getCity();
-            }
-          } catch (e) {
-            this.updateCityFormVisible = false;
-            this.$message.error("更新城市未成功");
-          }
-        }
-      });
-    },
-    async addCity(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await addCity(this.newCityData);
-            this.newCityFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "添加成功",
-                type: "success"
-              });
-              //再获取一次所有城市信息
-              this.getCity();
-            }
-          } catch (e) {
-            this.newCityFormVisible = false;
-            this.$message.error("添加城市未成功");
-          }
-        }
-      });
+    onChangeCityClose() {
+      this.getCity();
     }
   },
   async mounted() {

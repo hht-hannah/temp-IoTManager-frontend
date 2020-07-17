@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 class="page-title"> 设备数据 </h2>
+    <h2 class="page-title">设备数据</h2>
     <div class="search-container">
       <el-form :inline="true" :model="searchDevice" class="header">
         <el-form-item v-if="checkDeviceDataAuth(['DEVICEDATA_RETRIEVE'])">
@@ -91,32 +91,11 @@
         @current-change="pageChange()"
       ></el-pagination>
     </div>
-    <el-dialog title="修改数据" :visible.sync="updateFormVisible">
-      <el-form :model="updateData">
-        <el-form-item label="设备ID" label-width="120px">
-          <el-input v-model="updateData.deviceId" disabled autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="属性名称" label-width="120px">
-          <el-input v-model="updateData.indexName" disabled autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="属性ID" label-width="120px">
-          <el-input v-model="updateData.indexId" disabled autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="属性类型" label-width="120px">
-          <el-input v-model="updateData.indexType" disabled autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="值" label-width="120px">
-          <el-input v-model="updateData.indexValue" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="单位" label-width="120px">
-          <el-input v-model="updateData.indexUnit" disabled autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="updateFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="update">确 定</el-button>
-      </div>
-    </el-dialog>
+    <UpdateEquipmentData
+      :updateFormVisible.sync="updateFormVisible"
+      :onClose="onUpdateClose"
+      :defaultData="updateData"
+    ></UpdateEquipmentData>
   </div>
 </template>
 
@@ -136,12 +115,14 @@ import {
   batchDeleteDeviceData,
   updateDeviceData
 } from "../../api/api";
+import UpdateEquipmentData from "./UpdateEquipmentData";
 import FileSaver from "file-saver";
 import XLSX from "xlsx";
 import { checkAuth } from "../../common/util";
 
 export default {
   name: "EquipmentData",
+  components: { UpdateEquipmentData },
   data() {
     return {
       loading: false,
@@ -171,14 +152,7 @@ export default {
       ],
       //allTableData: [],
       multipleSelection: [],
-      updateData: {
-        deviceId: "",
-        indexName: "",
-        indexId: "",
-        indexType: "",
-        indexValue: "",
-        indexUnit: ""
-      },
+      updateData: [],
       newDeviceData: {
         hardwareDeviceID: "",
         DeviceName: "",
@@ -211,50 +185,50 @@ export default {
     uploadFailed() {
       this.$message.error("导入失败");
     },
-    readExcel(res, file) {
-      console.log("testss", file);
-      let vm = this;
-      const fileReader = new FileReader();
-      fileReader.onload = ev => {
-        try {
-          const data = ev.target.result;
-          const workbook = XLSX.read(data, {
-            type: "binary"
-          });
-          let sheetArray;
-          for (let sheet in workbook.Sheets) {
-            sheetArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
-          }
-          let dictionary = {
-            数据编号: "ID",
-            所属网关编号: "hardwareGatewayID",
-            所属网关名称: "gatewayName",
-            所属设备编号: "hardwareDeviceID",
-            所属设备名称: "deviceName",
-            数据: "data",
-            创建时间: "createTime",
-            描述: "remark"
-          };
-          let newData = sheetArray.map(item => {
-            let obj = {};
-            for (let key in item) {
-              obj[dictionary[key]] = item[key];
-            }
-            return obj;
-          });
-          // 导入接口，将数据导入后端
-          vm.tableData.push(...newData);
-          this.$message({
-            message: "导入成功",
-            type: "success"
-          });
-        } catch (e) {
-          this.$message.warning("文件类型不正确！");
-          return false;
-        }
-      };
-      fileReader.readAsBinaryString(file.raw);
-    },
+    // readExcel(res, file) {
+    //   console.log("testss", file);
+    //   let vm = this;
+    //   const fileReader = new FileReader();
+    //   fileReader.onload = ev => {
+    //     try {
+    //       const data = ev.target.result;
+    //       const workbook = XLSX.read(data, {
+    //         type: "binary"
+    //       });
+    //       let sheetArray;
+    //       for (let sheet in workbook.Sheets) {
+    //         sheetArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+    //       }
+    //       let dictionary = {
+    //         数据编号: "ID",
+    //         所属网关编号: "hardwareGatewayID",
+    //         所属网关名称: "gatewayName",
+    //         所属设备编号: "hardwareDeviceID",
+    //         所属设备名称: "deviceName",
+    //         数据: "data",
+    //         创建时间: "createTime",
+    //         描述: "remark"
+    //       };
+    //       let newData = sheetArray.map(item => {
+    //         let obj = {};
+    //         for (let key in item) {
+    //           obj[dictionary[key]] = item[key];
+    //         }
+    //         return obj;
+    //       });
+    //       // 导入接口，将数据导入后端
+    //       vm.tableData.push(...newData);
+    //       this.$message({
+    //         message: "导入成功",
+    //         type: "success"
+    //       });
+    //     } catch (e) {
+    //       this.$message.warning("文件类型不正确！");
+    //       return false;
+    //     }
+    //   };
+    //   fileReader.readAsBinaryString(file.raw);
+    // },
     exportExcel() {
       var fix = document.querySelector(".el-table__fixed-right");
       var wb;
@@ -291,44 +265,25 @@ export default {
       const data = await searchDeviceDataApi(this.searchData);
       this.tableData = data.data.d;
     },
-    async add() {
-      try {
-        const data = await addDeviceDataApi(this.newDeviceData);
-        this.newFormVisible = false;
-        if (data.data.c === 200) {
-          this.$message({
-            message: "添加成功",
-            type: "success"
-          });
-          this.getDeviceData();
-        }
-      } catch (e) {
-        this.newFormVisible = false;
-        this.$message.error("添加设备未成功");
-      }
-    },
-    async update() {
-      try {
-        const data = await updateDeviceData(
-          this.updateData.id,
-          this.updateData
-        );
-        this.updateFormVisible = false;
-        if (data.data.c === 200) {
-          this.$message({
-            message: "更新成功",
-            type: "success"
-          });
-          this.getDeviceData();
-        }
-      } catch (e) {
-        this.updateFormVisible = false;
-        this.$message.error("更新数据未成功");
-      }
-    },
+    // async add() {
+    //   try {
+    //     const data = await addDeviceDataApi(this.newDeviceData);
+    //     this.newFormVisible = false;
+    //     if (data.data.c === 200) {
+    //       this.$message({
+    //         message: "添加成功",
+    //         type: "success"
+    //       });
+    //       this.getDeviceData();
+    //     }
+    //   } catch (e) {
+    //     this.newFormVisible = false;
+    //     this.$message.error("添加设备未成功");
+    //   }
+    // },
     async openUpdateForm(row) {
       //打开更新表单
-      console.log(row.id);
+      // console.log(row.id);
       this.updateData = row;
       this.updateFormVisible = true;
     },
@@ -376,41 +331,21 @@ export default {
         console.log(e);
       }
     },
-    // 标签处理函数
-    handleClose(tag) {
-      //this.newDeviceData.dynamicTags.splice(this.newDeviceData.dynamicTags.indexOf(tag), 1);
-    },
+    // showInput() {
+    //   this.newDeviceData.inputVisible = true;
+    //   this.$nextTick(_ => {
+    //     this.$refs.saveTagInput.$refs.input.focus();
+    //   });
+    // },
 
-    showInput() {
-      this.newDeviceData.inputVisible = true;
-      this.$nextTick(_ => {
-        this.$refs.saveTagInput.$refs.input.focus();
-      });
-    },
-
-    handleInputConfirm() {
-      let inputValue = this.newDeviceData.inputValue;
-      if (inputValue) {
-        this.newDeviceData.dynamicTags.push(inputValue);
-      }
-      this.newDeviceData.inputVisible = false;
-      this.newDeviceData.inputValue = "";
-    },
-    filter() {
-      console.log(this.searchGatewayData);
-      //调接口，传searchGatewayData参数
-    },
-    getCityList() {
-      // 调获取城市接口
-    },
-    getFactoryList() {
-      console.log(this.searchDevice.city);
-      // 调获取工厂接口，searchGatewayData.city参数
-    },
-    getWorkshopList() {
-      console.log(this.searchDevice.city, this.searchDevice.factory);
-      // 调获取车间接口，searchGatewayData.city，searchGatewayData.factory参数
-    },
+    // handleInputConfirm() {
+    //   let inputValue = this.newDeviceData.inputValue;
+    //   if (inputValue) {
+    //     this.newDeviceData.dynamicTags.push(inputValue);
+    //   }
+    //   this.newDeviceData.inputVisible = false;
+    //   this.newDeviceData.inputValue = "";
+    // },
     async getDeviceData() {
       this.loading = true;
       const orderMap = { ascending: "asc", descending: "desc" };
@@ -457,16 +392,16 @@ export default {
         const d = deviceId === "全部" ? "all" : deviceId;
         this.totalPage = (await getDeviceDataNumber("search", d)).data.d;
       }
+    },
+    onUpdateClose() {
+      this.getDeviceData();
     }
   },
   async mounted() {
     this.getTotalPage("all");
     this.getDeviceOptions();
-    this.getCityList();
     //获取所有设备信息
     this.getDeviceData();
-    // this.allTableData = (await getDevicesDataApi('all')).data.d;
-    // console.log(this.allTableData);
   }
 };
 </script>
@@ -510,5 +445,4 @@ export default {
 .tag-center {
   text-align: center;
 }
-
 </style>

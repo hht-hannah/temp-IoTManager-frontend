@@ -45,8 +45,10 @@ export default {
       histogramOption: {
         xAxis: {
           type: "category",
-          axisLabel: {
-            interval: 0
+          axisLine: {
+            lineStyle: {
+              color: "#B4B4B4"
+            }
           },
           data: []
         },
@@ -62,41 +64,55 @@ export default {
         },
         yAxis: [
           {
-            type: "value",
             name: "平均在线时间",
-            splitNumber: 6
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [3, 4, 50, 6]
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                type: "dashed",
+                color: "#B4B4B4"
+              }
+            },
+            axisLine: {
+              show: true,
+              lineStyle: {
+                color: "#B4B4B4"
+              }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
+            }
           },
           {
-            type: "value",
             name: "设备综合效率",
-            position: "right",
-            max: 1,
-            min: 0,
-            splitNumber: 6,
-            axisLabel: {
+            nameLocation: "middle",
+            nameTextStyle: {
+              padding: [50, 4, 5, 6]
+            },
+            splitLine: {
+              show: false
+            },
+            axisLine: {
               show: true,
-              showMinLabel: true,
-              showMaxLabel: true,
-              formatter: function(value) {
-                return value;
+              lineStyle: {
+                color: "#B4B4B4"
               }
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#B4B4B4"
+              },
+              formatter: "{value} "
             }
           }
         ],
-        series: [
-          {
-            name: "平均在线时间",
-            data: [],
-            yAxisIndex: 0,
-            type: "bar"
-          },
-          {
-            name: "设备综合效率",
-            data: [],
-            yAxisIndex: 1,
-            type: "bar"
-          }
-        ],
+        series: [],
         toolbox: {
           show: true,
           feature: {
@@ -194,42 +210,98 @@ export default {
       this.chart.setOption(this.histogramOption);
     },
     async handleDateChange() {
-      if (this.selectedDate.length > 1) {
+      var result = [];
+      if (this.selectedDate !== null &&  this.selectedDate.length > 1) {
         this.chartLoading = true;
-        const result = (
-          await getReportByTime({
-            startTime: this.selectedDate[0],
-            endTime: this.selectedDate[1]
-          })
-        ).data.d;
-        this.histogramOption.xAxis.data = result["xAxis"];
-        this.histogramOption.series = result["series"];
-        this.chart.setOption(this.histogramOption);
-        this.chartLoading = false;
+        result = (await getReportByTime({
+          startTime: this.selectedDate[0],
+          endTime: this.selectedDate[1]
+        })).data.d;
       } else {
         this.chartLoading = true;
-        const result = (
-          await getReportByTime({
-            startTime: new Date("1980/1/1"),
-            endTime: new Date("2030/12/31")
-          })
-        ).data.d;
-        this.histogramOption.xAxis.data = result["xAxis"];
-        this.histogramOption.series = result["series"];
-        this.chart.setOption(this.histogramOption);
-        this.chartLoading = false;
+        result = (await getReportByTime({
+          startTime: new Date("1980/1/1"),
+          endTime: new Date("2030/12/31")
+        })).data.d;
       }
+      this.histogramOption.xAxis.data = result["xAxis"];
+
+      const color1 = [
+        "#409EFF",
+        "#FFDD33",
+        "#669966",
+        "#7B76D8",
+        "#6EDBCF",
+        "#FFAD60",
+        "#E3787E"
+      ];
+      const hexToRgba = (hex, opacity) => {
+        let rgbaColor = "";
+        let reg = /^#[\da-f]{6}$/i;
+        if (reg.test(hex)) {
+          rgbaColor = `rgba(${parseInt("0x" + hex.slice(1, 3))},${parseInt(
+            "0x" + hex.slice(3, 5)
+          )},${parseInt("0x" + hex.slice(5, 7))},${opacity})`;
+        }
+        return rgbaColor;
+      };
+      this.histogramOption.series = [];
+      result["series"].forEach((s, index) => {
+        this.histogramOption.series.push({
+          name: s.name,
+          data: s.data,
+          type: "line",
+          smooth: true,
+          yAxisIndex: s.name === "设备综合效率" ? 1 : 0,
+          symbolSize: 8,
+          label: {
+            show: false,
+            fontSize: 14,
+            fontWeight: "bold",
+            position: "top",
+            color: color1[index % 7]
+          },
+          itemStyle: {
+            normal: {
+              color: color1[index % 7],
+              barBorderRadius: [30, 30, 0, 0]
+            }
+          },
+          areaStyle: {
+            normal: {
+              color: new echarts.graphic.LinearGradient(
+                0,
+                0,
+                0,
+                1,
+                [
+                  {
+                    offset: 0,
+                    color: hexToRgba(color1[index % 7], 0.2)
+                  },
+                  {
+                    offset: 1,
+                    color: hexToRgba(color1[index % 7], 0)
+                  }
+                ],
+                false
+              ),
+              shadowColor: hexToRgba(color1[index % 7], 0.1),
+              shadowBlur: 5
+            }
+          }
+        });
+      });
+      this.chart.setOption(this.histogramOption);
+      this.chartLoading = false;
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/scss/variaties.scss";
 .time-dimension-container {
-  .head-container {
-    margin: 20px 50px;
-  }
-
   .report-statistic-daily-histogram {
     height: 500px;
   }
@@ -238,7 +310,7 @@ export default {
     height: 500px;
   }
 
-  .el-card{
+  .el-card {
     margin-left: 20px;
   }
 }
