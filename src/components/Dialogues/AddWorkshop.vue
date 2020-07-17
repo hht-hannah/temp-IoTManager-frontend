@@ -61,6 +61,8 @@
 </template>
 
 <script>
+//  use this line to add the dialogue to the page： 
+//  <AddWorkshop :workshopAddVisible.sync="workshopAddVisible" :onClose="onAddWorkshopClose"></AddWorkshop>
 import { addWorkshop, getCity, getFactoryOptions } from "../../api/api";
 export default {
   name: "AddWorkshop",

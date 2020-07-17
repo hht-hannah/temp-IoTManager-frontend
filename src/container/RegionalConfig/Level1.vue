@@ -71,7 +71,6 @@
 
 <script>
 import {
-  getCityOptions,
   getCity,
   getCityNumber,
   deleteCity,
@@ -96,12 +95,10 @@ export default {
       cityData: [],
       pageSize: 6,
       //city修改el-dialog
-      cityList: [],
       cityAddVisible: false,
       searchCity: "",
       updateCityData: [],
       cityUpdateVisible: false,
-      changeCityForm: "",
       cityCurSortColumn: "",
       cityCurOrder: "",
       pageMode: 1
@@ -196,10 +193,10 @@ export default {
     },
     async getCityTotalPage(searchType, city = "all") {
       if (searchType === "all") {
-        this.cityTotalPage = await getCityNumber("all");
+        this.cityTotalPage = (await getCityNumber("all")).data.d;
       } else if (searchType === "search") {
         const c = city === "全部" ? "all" : city;
-        this.cityTotalPage = await getCityNumber("search", c);
+        this.cityTotalPage = (await getCityNumber("search", c)).data.d;
       }
     },
     async citySortChange(ob) {
@@ -214,7 +211,6 @@ export default {
   async mounted() {
     this.getCityTotalPage("all");
     this.getCity(); //得到“城市管理”的表单数据
-    this.cityList = (await getCityOptions()).data.d;
   }
 };
 </script>

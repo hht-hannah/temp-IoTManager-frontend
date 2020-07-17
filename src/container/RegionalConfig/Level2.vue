@@ -12,7 +12,7 @@
           <el-button type="primary" @click="searchByBuilding">搜索</el-button>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_CREATE'])">
-          <el-button type="primary" @click="newBuildingFormVisible = true">添加{{GLOBAL.secondLevel}}</el-button>
+          <el-button type="primary" @click="factoryAddVisible = true">添加{{GLOBAL.secondLevel}}</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -62,102 +62,34 @@
       ></el-pagination>
     </div>
     <br />
-
-    <el-dialog :title="'修改'+GLOBAL.secondLevel" :visible.sync="updateBuildingFormVisible">
-      <el-form :model="updateBuildingData" ref="updateBuildingData">
-        <el-form-item
-          :label="'所属'+GLOBAL.firstLevel"
-          prop="city"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.firstLevel+'不能为空'}]"
-        >
-          <el-select v-model="updateBuildingData.city" :placeholder="'选择'+GLOBAL.firstLevel">
-            <el-option v-for="c in cityList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="GLOBAL.secondLevel"
-          prop="factoryName"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.secondLevel+'不能为空'}]"
-        >
-          <el-input v-model="updateBuildingData.factoryName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话" label-width="120px">
-          <el-input v-model="updateBuildingData.factoryPhoneNumber" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地址" label-width="120px">
-          <el-input v-model="updateBuildingData.factoryAddress" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="updateBuildingData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="updateBuildingFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="updateBuilding('updateBuildingData')">确 定</el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog :title="'添加'+GLOBAL.secondLevel" :visible.sync="newBuildingFormVisible">
-      <el-form :model="newBuildingData" ref="newBuildingData">
-        <el-form-item
-          :label="'所属'+GLOBAL.firstLevel"
-          prop="city"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.firstLevel+'不能为空'}]"
-        >
-          <el-select v-model="newBuildingData.city" :placeholder="'选择'+GLOBAL.firstLevel">
-            <el-option v-for="c in cityList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="GLOBAL.secondLevel"
-          prop="factoryName"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.secondLevel+'不能为空'}]"
-        >
-          <el-input v-model="newBuildingData.factoryName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话" label-width="120px">
-          <el-input v-model="newBuildingData.factoryPhoneNumber" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地址" label-width="120px">
-          <el-input v-model="newBuildingData.factoryAddress" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="newBuildingData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="newBuildingFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addBuilding('newBuildingData')">确 定</el-button>
-      </div>
-    </el-dialog>
+    <AddFactory :factoryAddVisible.sync="factoryAddVisible" :onClose="onChangeFactoryClose"></AddFactory>
+    <UpdateFactory
+      :factoryUpdateVisible.sync="factoryUpdateVisible"
+      :onClose="onChangeFactoryClose"
+      :defaultData="updateFactoryData"
+    ></UpdateFactory>
   </div>
 </template>
 
 <script>
 import {
-  getFactoryOptions,
   getFactory,
   getFactoryNumber,
   deleteFactory,
-  addFactory,
-  updateFactory,
   getFactoryByFactoryName,
   getFactoryAffiliateWorkshop,
   getFactoryAffiliateDevice,
   getFactoryAffiliateGateway,
-  getCityOptions
 } from "../../api/api";
 import { checkAuth } from "../../common/util";
+import AddFactory from "../../components/Dialogues/AddFactory";
+import UpdateFactory from "../../components/Dialogues/UpdateFactory";
 export default {
   name: "Level2",
+  components: { AddFactory, UpdateFactory },
   data() {
     return {
       loading: false,
-      cityList: [],
       //factory-search-container
       searchBuilding: "",
       //factory-table-container
@@ -167,25 +99,10 @@ export default {
       factoryCurOrder: "",
       buildingData: [],
       //factory修改el-dialog
-      buildingList: [],
-      updateBuildingFormVisible: false,
-      updateBuildingData: {
-        factoryName: "",
-        factoryPhoneNumber: "",
-        factoryAddress: "",
-        city: "",
-        remark: ""
-      },
+      factoryUpdateVisible: false,
+      updateFactoryData: [],
       //factory添加el-dialog
-      newBuildingFormVisible: false,
-      newBuildingData: {
-        factoryName: "",
-        factoryPhoneNumber: "",
-        factoryAddress: "",
-        city: "",
-        remark: ""
-      },
-      changeFactoryForm: "",
+      factoryAddVisible: false,
       factoryList: [],
       pageMode: 1
     };
@@ -196,29 +113,11 @@ export default {
     },
     async searchByBuilding() {
       if (this.searchBuilding !== "") {
-        this.buildingData = (
-          await getFactoryByFactoryName(this.searchBuilding)
-        ).data.d;
+        this.buildingData = (await getFactoryByFactoryName(
+          this.searchBuilding
+        )).data.d;
       } else {
         this.buildingData = this.getFactory();
-      }
-    },
-    async getNewFactory(city) {
-      this.factoryList = (await getFactoryOptions(city)).data.d;
-      if (this.factoryList.length != 0) {
-        this.newLabData.factory = this.factoryList[0].value;
-      } else {
-        this.newLabData.factory = null;
-      }
-    },
-    async getUpdateBuildingList(city) {
-      this.buildingList = (await getFactoryOptions(city)).data.d;
-      console.log(this.updateLabData.city);
-      if (this.buildingList != null) {
-        this.updateBuildingData.buildingName = this.buildingList[0].value;
-      } else {
-        this.updateBuildingData.buildingName = "";
-        this.buildingList = [];
       }
     },
     async getFactory() {
@@ -263,55 +162,10 @@ export default {
       this.factoryCurOrder = ob.order;
       this.getFactory();
     },
-    async updateBuilding(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await updateFactory(
-              this.updateBuildingData.id,
-              this.updateBuildingData
-            );
-            this.updateBuildingFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "更新成功",
-                type: "success"
-              });
-              //再获取一次所有实验楼信息
-              this.getFactory();
-            }
-          } catch (e) {
-            this.updateBuildingFormVisible = false;
-            this.$message.error("更新实验楼未成功");
-          }
-        }
-      });
-    },
     async openBuildingUpdateForm(row) {
       //打开更新表单
-      this.updateBuildingData = JSON.parse(JSON.stringify(row));
-      this.updateBuildingFormVisible = true;
-    },
-    async addBuilding(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await addFactory(this.newBuildingData);
-            this.newBuildingFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "添加成功",
-                type: "success"
-              });
-              //再获取一次所有实验楼信息
-              this.getFactory();
-            }
-          } catch (e) {
-            this.newBuildingFormVisible = false;
-            this.$message.error("添加实验楼未成功");
-          }
-        }
-      });
+      this.updateFactoryData = row;
+      this.factoryUpdateVisible = true;
     },
     async deleteBuilding(row) {
       const affiliateWorkshop = (await getFactoryAffiliateWorkshop(row.id)).data
@@ -352,13 +206,14 @@ export default {
             "个下属网关, 无法被删除"
         );
       }
+    },
+    onChangeFactoryClose () {
+      this.getFactory();
     }
   },
   async mounted() {
     this.getFactoryTotalPage("all");
     this.getFactory();
-    this.cityList = (await getCityOptions()).data.d;
-    this.buildingList = (await getFactory(1, "id", "asc", 0)).data.d;
   }
 };
 </script>

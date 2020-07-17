@@ -42,6 +42,8 @@
 </template>
 
 <script>
+//use this line to add the dialogue to the page： 
+//<AddFactory :factoryAddVisible.sync="factoryAddVisible" :onClose="onChangeFactoryClose"></AddFactory>
 import { addFactory, getCity } from "../../api/api";
 export default {
   name: "AddFactory",

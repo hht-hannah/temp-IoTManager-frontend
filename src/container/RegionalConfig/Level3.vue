@@ -12,7 +12,7 @@
           <el-button type="primary" @click="searchByLab">搜索</el-button>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_CREATE'])">
-          <el-button type="primary" @click="newLabFormVisible = true">添加{{GLOBAL.thirdLevel}}</el-button>
+          <el-button type="primary" @click="workshopAddVisible = true">添加{{GLOBAL.thirdLevel}}</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -113,56 +113,7 @@
         <el-button type="primary" @click="updateLab('updateLabData')">确 定</el-button>
       </div>
     </el-dialog>
-
-    <el-dialog :title="'添加'+GLOBAL.thirdLevel" :visible.sync="newLabFormVisible">
-      <el-form :model="newLabData" ref="newLabData">
-        <el-form-item
-          :label="'所属'+GLOBAL.firstLevel"
-          prop="city"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.firstLevel+'不能为空'}]"
-        >
-          <el-select
-            v-model="newLabData.city"
-            :placeholder="'选择'+GLOBAL.firstLevel"
-            @change="getNewFactory(newLabData.city)"
-          >
-            <el-option v-for="c in cityList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="'所属'+GLOBAL.secondLevel"
-          prop="factory"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.secondLevel+'不能为空'}]"
-        >
-          <el-select v-model="newLabData.factory" :placeholder="'选择'+GLOBAL.secondLevel">
-            <el-option v-for="c in factoryList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="GLOBAL.thirdLevel"
-          prop="workshopName"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.thirdLevel+'不能为空'}]"
-        >
-          <el-input v-model="newLabData.workshopName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话" label-width="120px">
-          <el-input v-model="newLabData.workshopPhoneNumber" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地址" label-width="120px">
-          <el-input v-model="newLabData.workshopAddress" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="newLabData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="newLabFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addLab('newLabData')">确 定</el-button>
-      </div>
-    </el-dialog>
+    <AddWorkshop :workshopAddVisible.sync="workshopAddVisible" :onClose="onChangeWorkshopClose"></AddWorkshop>
   </div>
 </template>
 
@@ -199,21 +150,13 @@ export default {
       changeWorkshopForm: "",
       labList: [],
       updateLabFormVisible: false,
-      newLabFormVisible: false,
+      workshopAddVisible: false,
       updateLabData: {
         workshopName: "",
         workshopPhoneNumber: "",
         workshopAddress: "",
         factory: "",
         city: "",
-        remark: ""
-      },
-      newLabData: {
-        workshopName: "",
-        workshopPhoneNumber: "",
-        workshopAddress: "",
-        city: "",
-        factory: "",
         remark: ""
       },
       updateBuildingData: {
@@ -324,27 +267,6 @@ export default {
       this.updateLabFormVisible = true;
       this.getUpdateBuildingList(this.updateLabData.city);
     },
-    async addLab(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await addWorkshop(this.newLabData);
-            this.newLabFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "添加成功",
-                type: "success"
-              });
-              //再获取一次所有实验室信息
-              this.getWorkshop();
-            }
-          } catch (e) {
-            this.newLabFormVisible = false;
-            this.$message.error("添加实验室未成功");
-          }
-        }
-      });
-    },
     async deleteLab(row) {
       const affiliateDevice = (await getWorkshopAffiliateDevice(row.id)).data.d;
       const affiliateGateway = (await getWorkshopAffiliateGateway(row.id)).data
@@ -393,6 +315,9 @@ export default {
         this.updateBuildingData.buildingName = "";
         this.buildingList = [];
       }
+    },
+    onChangeWorkshopClose() {
+      this.getWorkshop();
     }
   },
   async mounted() {

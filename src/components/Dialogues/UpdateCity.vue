@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import {} from "../../api/api";
+import { updateCityApi } from "../../api/api";
 export default {
   name: "UpdateCity",
   props: ["cityUpdateVisible", "onClose", "defaultData"],
@@ -54,21 +54,21 @@ export default {
       this.$refs[formName].validate(async valid => {
         if (valid) {
           try {
-            console.log(this.updateCityData);
             const data = await updateCityApi(
               this.updateCityData.id,
               this.updateCityData
             );
-            $emit("update:cityUpdateVisible", false);
+            this.$emit("update:cityUpdateVisible", false);
             if (data.data.c === 200) {
               this.$message({
                 message: "更新成功",
                 type: "success"
               });
               //再获取一次所有城市信息
+              this.onClose();
             }
           } catch (e) {
-            $emit("update:cityUpdateVisible", false);
+            this.$emit("update:cityUpdateVisible", false);
             this.$message.error("更新城市未成功");
           }
         }
@@ -78,7 +78,6 @@ export default {
   watch: {
     cityUpdateVisible() {
       this.visible = this.cityUpdateVisible;
-      console.log(this.$props.defaultData);
       this.updateCityData = JSON.parse(JSON.stringify(this.$props.defaultData));
     }
   }

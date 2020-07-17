@@ -32,6 +32,8 @@
 </template>
 
 <script>
+//use this line to add the dialogue to the page： 
+//<AddCity :cityAddVisible.sync="cityAddVisible" :onClose="onChangeCityClose"></AddCity>
 import { addCity } from "../../api/api";
 export default {
   name: "AddCity",
