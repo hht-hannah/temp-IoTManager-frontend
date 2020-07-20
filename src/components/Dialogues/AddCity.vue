@@ -14,12 +14,6 @@
       >
         <el-input v-model="cityTable.cityName" autocomplete="off"></el-input>
       </el-form-item>
-      <el-form-item label="经度" label-width="120px" :rules="[{required: true, message: '经度不能为空'}]">
-        <el-input v-model="cityTable.longitude" autocomplete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="纬度" label-width="120px" :rules="[{required: true, message: '纬度不能为空'}]">
-        <el-input v-model="cityTable.latitude" autocomplete="off"></el-input>
-      </el-form-item>
       <el-form-item label="备注" label-width="120px">
         <el-input v-model="cityTable.remark" autocomplete="off"></el-input>
       </el-form-item>
@@ -41,8 +35,6 @@ export default {
       visible: this.cityAddVisible,
       cityTable: {
         cityName: "",
-        longitude: "",
-        latitude: "",
         remark: ""
       }
     };
@@ -54,7 +46,7 @@ export default {
           try {
             const data = await addCity(this.cityTable);
             this.$emit("update:cityAddVisible", false);
-            if (data.data.d === "success") {
+            if (data.success === true) {
               this.$message({
                 message: "添加成功",
                 type: "success"

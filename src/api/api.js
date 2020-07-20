@@ -14,7 +14,47 @@ axios.defaults.headers = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
   'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token'
 }
-//登陆注册
+//Account
+
+
+//City
+export const getCity = async (FilterText = "", Sorting = 'id ASC', MaxResultCount = 6, SkipCount = 0) => {
+  var response = await axios.get(`/api/services/app/City/GetAll?&FilterText=${FilterText}&Sorting=${Sorting}&MaxResultCount=${MaxResultCount}&SkipCount=${SkipCount}`)
+    .then((res) => { return res.data })
+    .catch((err) => console.log(err))
+  return response
+}
+
+
+export const addCity = async (city) => {
+  var response = await axios.post(`/api/services/app/City/Create`, city)
+    .then((res) => { return res.data })
+    .catch((err) => console.log(err))
+  return response
+}
+
+export const updateCity = async (city) => {
+  var response = await axios.put(`/api/services/app/City/Update`, city)
+    .then((res) => { return res.data })
+    .catch((err) => console.log(err))
+  return response
+}
+
+export const deleteCity = async (id) => {
+  var response = await axios.delete(`/api/services/app/City/Delete?&id=${id}`)
+    .then((res) => { return res.data })
+    .catch((err) => console.log(err))
+  return response
+}
+
+export const getCityAffiliate = async (id) => {
+  var response = await axios.get(`/api/services/app/City/GetAffilateFactoryAndWorkshopNumber?&id=${id}`)
+    .then((res) => { return res.data })
+    .catch((err) => console.log(err))
+  return response
+}
+
+
 export function loginApi(form) {
   return axios.post('/api/login', {
     ...form
@@ -107,15 +147,6 @@ export function deleteDeviceApi(id) {
 
 export function deleteMultipleDeviceApi(id) {
   return axios.post(`/api/device/batch/devices`, { ...id });
-}
-
-export const getCity = async (FilterText = "", Sorting = 'id ASC', MaxResultCount = 6, SkipCount = 0) => {
-  var response = await axios.get(`/api/services/app/City/GetAll?&FilterText=${FilterText}&Sorting=${Sorting}&MaxResultCount=${MaxResultCount}&SkipCount=${SkipCount}`);
-  if (response.data.success === true) {
-    return response.data.result;
-  } else {
-    console.log(response.data.error)
-  }
 }
 
 export function getFactory(page = 1, column = 'id', order = 'asc', pageMode) {
@@ -483,10 +514,6 @@ export function getSeverity() {
   return axios.get(`/api/severity`);
 }
 
-export function addCity(city) {
-  console.log(city)
-  return axios.post(`/api/city`, { ...city });
-}
 
 export function addFactory(factory) {
   return axios.post(`/api/factory`, { ...factory });
@@ -592,14 +619,6 @@ export function getFactoryNumber(searchType, factoryName = 'all') {
 
 export function getWorkshopNumber(searchType, workshopName = 'all') {
   return axios.get(`/api/workshop/number?searchType=${searchType}&workshopName=${workshopName}`);
-}
-
-export function updateCityApi(id, data) {
-  return axios.put(`/api/city/${id}`, { ...data });
-}
-
-export function deleteCity(id) {
-  return axios.delete(`/api/city/${id}`);
 }
 
 export function deleteFactory(id) {

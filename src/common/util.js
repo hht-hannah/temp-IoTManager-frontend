@@ -12,3 +12,7 @@ export function checkAuth(auth) {
     return true;
   }
 }
+
+export function timeFormatter(time) {
+  return time.split("T")[0] + " " + time.split("T")[1].split(".")[0] 
+}

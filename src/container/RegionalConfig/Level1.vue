@@ -6,10 +6,14 @@
           <h2 id="first">{{GLOBAL.firstLevel}}</h2>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_RETRIEVE'])">
-          <el-input v-model="searchCity" :placeholder=" '请输入' + GLOBAL.firstLevel + '名'"></el-input>
+          <el-input
+            v-model="searchCity"
+            @change="getCity"
+            :placeholder=" '请输入' + GLOBAL.firstLevel + '名'"
+          ></el-input>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_RETRIEVE'])">
-          <el-button type="primary" @click="searchByCity">搜索</el-button>
+          <el-button type="primary" @click="getCity">搜索</el-button>
         </el-form-item>
         <el-form-item v-if="checkRegionAuth(['CONFIGURE_REGION_CREATE'])">
           <el-button type="primary" @click="cityAddVisible = true">添加{{GLOBAL.firstLevel}}</el-button>
@@ -25,8 +29,18 @@
         @sort-change="citySortChange"
       >
         <el-table-column prop="cityName" :label="GLOBAL.firstLevel"></el-table-column>
-        <el-table-column prop="createTime" label="创建时间" sortable="custom"></el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" sortable="custom"></el-table-column>
+        <el-table-column
+          prop="creationTime"
+          label="创建时间"
+          sortable="custom"
+          :formatter="row => timeFormatter(row.creationTime)"
+        ></el-table-column>
+        <el-table-column
+          prop="lastModificationTime"
+          label="更新时间"
+          sortable="custom"
+          :formatter="row => timeFormatter(row.lastModificationTime)"
+        ></el-table-column>
         <el-table-column prop="longitude" label="经度" sortable="custom"></el-table-column>
         <el-table-column prop="latitude" label="纬度" sortable="custom"></el-table-column>
         <el-table-column prop="remark" label="备注"></el-table-column>
@@ -76,13 +90,11 @@ import {
   getCityNumber,
   deleteCity,
   getCityByCityName,
-  getCityAffiliateFactory,
-  getCityAffiliateDevice,
-  getCityAffiliateGateway
+  getCityAffiliate
 } from "../../api/api";
 import AddCity from "../../components/Dialogues/AddCity";
 import UpdateCity from "../../components/Dialogues/UpdateCity";
-import { checkAuth } from "../../common/util";
+import { checkAuth, timeFormatter } from "../../common/util";
 
 export default {
   name: "Level1",
@@ -100,9 +112,8 @@ export default {
       searchCity: "",
       updateCityData: [],
       cityUpdateVisible: false,
-      changeCityForm: "",
       cityCurSortColumn: "",
-      cityCurOrder: "",
+      cityCurOrder: null,
       pageMode: 1
     };
   },
@@ -111,33 +122,30 @@ export default {
     checkRegionAuth(auth) {
       return checkAuth(auth);
     },
-    async searchByCity() {
-      if (this.searchCity !== "") {
-        this.cityData = (await getCityByCityName(this.searchCity)).data.d;
-      } else {
-        this.cityData = this.getCity();
-      }
-    },
     //city-table-container
     async openCityUpdateForm(row) {
       //打开更新表单
       this.updateCityData = JSON.parse(JSON.stringify(row));
       this.cityUpdateVisible = true;
     },
+    timeFormatter(time) {
+      if (time) {
+        return timeFormatter(time);
+      }
+    },
     async deleteCity(row) {
-      const affiliateFactory = (await getCityAffiliateFactory(row.id)).data.d;
-      const affiliateDevice = (await getCityAffiliateDevice(row.id)).data.d;
-      const affiliateGateway = (await getCityAffiliateGateway(row.id)).data.d;
+      const affiliate = (await getCityAffiliate(row.id)).result;
+      console.log(affiliate)
       if (
-        affiliateFactory === 0 &&
-        affiliateDevice === 0 &&
-        affiliateGateway === 0
+        affiliate["factoryNumber"] === 0 &&
+        affiliate["workshopName"] === 0 
       ) {
         try {
           this.$confirm("确认删除？")
             .then(async _ => {
               const data = await deleteCity(row.id);
-              if (data.data.c === 200) {
+              console.log(data)
+              if (data.success === true) {
                 this.$message({
                   message: "删除成功",
                   type: "success"
@@ -153,49 +161,33 @@ export default {
       } else {
         this.$msgbox(
           "该城市有" +
-            affiliateFactory +
+            affiliate["factoryNumber"] +
             "个下属实验楼, " +
-            affiliateDevice +
-            "个下属设备, " +
-            affiliateGateway +
-            "个下属网关，无法被删除"
+            affiliate["workshopName"] +
+            "个下属设备, 无法被删除"
         );
       }
     },
     async getCity() {
       this.loading = true;
-      const orderMap = { ascending: "id ASC", descending: "id DESC" };
-      const columnMap = {
-        id: "id",
-        longitude: "longitude",
-        latitude: "latitude",
-        updateTime: "updateTime",
-        createTime: "createTime"
-      };
-      const searchColumn =
-        this.cityCurSortColumn === ""
-          ? "id"
-          : columnMap[this.cityCurSortColumn];
-      const searchOrder =
-        this.cityCurOrder === "" ? "id ASC" : orderMap[this.cityCurOrder];
-      const searchCityName =
-        this.searchCity === "全部" ? "all" : this.searchCity;
-      var skipcount = (this.cityCurPage - 1 ) * this.pageSize;
-      const data = await getCity("", this.cityCurOrder, this.pageSize, skipcount);
-      this.cityData = data.items;
-      this.cityTotalPage = this.cityData.length;
+      const orderMap = { ascending: "ASC", descending: "DESC" };
+      this.cityCurOrder === null
+        ? (this.searchOrder = "")
+        : (this.searchOrder =
+            this.cityCurSortColumn + " " + orderMap[this.cityCurOrder]);
+      var skipcount = (this.cityCurPage - 1) * this.pageSize;
+      const data = await getCity(
+        this.searchCity,
+        this.searchOrder,
+        this.pageSize,
+        skipcount
+      );
+      this.cityData = data.result.items;
+      this.cityTotalPage = data.result.totalCount;
       this.loading = false;
     },
     async cityPageChange() {
       this.getCity();
-    },
-    async getCityTotalPage(searchType, city = "all") {
-      // if (searchType === "all") {
-      //   this.cityTotalPage = (await getCityNumber("all"));
-      // } else if (searchType === "search") {
-      //   const c = city === "全部" ? "all" : city;
-      //   this.cityTotalPage = (await getCityNumber("search", c));
-      // }
     },
     async citySortChange(ob) {
       this.cityCurSortColumn = ob.prop;
@@ -207,7 +199,6 @@ export default {
     }
   },
   async mounted() {
-    this.getCityTotalPage("all");
     this.getCity(); //得到“城市管理”的表单数;
   }
 };
