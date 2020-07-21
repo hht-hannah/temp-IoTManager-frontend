@@ -19,22 +19,22 @@ Vue.use(ElementUI, {
 Vue.config.productionTip = false;
 // vuex
 Vue.use(Vuex);
-router.beforeEach((to, from, next) => {
-  if(localStorage.getItem('userInfo')) {
-    if (to.path === '/login'){
-      next({path: '/dashboard'});
-    } else {
-      next();
-    }
-  }
-  else {
-    if (to.path === '/login') {
-      next();
-    } else {
-      next({path: '/login'});
-    }
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   if(localStorage.getItem('userInfo')) {
+//     if (to.path === '/login'){
+//       next({path: '/dashboard'});
+//     } else {
+//       next();
+//     }
+//   }
+//   else {
+//     if (to.path === '/login') {
+//       next();
+//     } else {
+//       next({path: '/login'});
+//     }
+//   }
+// });
 const store=createStore();
 /* eslint-disable no-new */
 new Vue({

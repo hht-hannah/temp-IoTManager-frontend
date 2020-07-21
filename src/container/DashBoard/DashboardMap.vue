@@ -2,8 +2,7 @@
   <div class="block">
     <span class="select-title">地域筛选</span>
     <el-cascader :options="selectorOptions" v-model="searchCity" @change="areaFilter"></el-cascader>
-    <div class="dashboard-map-container">
-    </div>
+    <div class="dashboard-map-container"></div>
   </div>
 </template>
 
@@ -30,40 +29,64 @@ export default {
       reload: true,
       searchCity: ["全部"],
       option: {
-        backgroundColor: "#404a59", // 图表背景色
-        tooltip: {
-          trigger: "item",
-          formatter: function(
-            data //对提示框的数据自定义
-          ) {
-            return data.seriesName + "<br/>" + data.name + "：" + data.value[2]; //将小数转化为百分数显示
-          }
-        }, // 鼠标移到图里面的浮动提示框
+        backgroundColor: '#eeeeee',
         geo: {
-          // 这个是重点配置区
-          map: "world", // 表示世界地图
-          roam: true,
-          itemStyle: {
-            // 定义样式
+          show: true,
+          map: "world",
+          label: {
             normal: {
-              // 普通状态下的样式
-              areaColor: "#323c48",
-              borderColor: "#111"
+              show: false
             },
             emphasis: {
-              // 高亮状态下的样式
-              areaColor: "#483636"
+              show: false
             }
           },
-          center: [],
-          zoom: 1
+          roam: true,
+          itemStyle: {
+            normal: {
+              areaColor: "#3077BF", //#031525
+              borderColor: "#083A66" //#3B5077
+            },
+            emphasis: {
+              areaColor: "#70B6FF" //'#2B91B7'
+            }
+          },
+          center: [110, 30],
+          zoom: 4
+        },
+        tooltip: {
+          show: true,
+          formatter: function(params) {
+            return (
+              params.seriesName + "</br>" + params.name + ": " + params.value[2]
+            );
+          }
         },
         series: [
           {
-            name: "设备分布", // series名称
-            type: "scatter", // series图表类型
-            coordinateSystem: "geo", // series坐标系类型
-            data: []
+            name: "地域分布",
+            type: "effectScatter",
+            coordinateSystem: "geo",
+            data: [],
+            symbolSize: 10,
+            showEffectOn: "render",
+            hoverAnimation: true,
+            label: {
+              normal: {
+                formatter: "{b}",
+                position: "bottom",
+                color: "#fff",
+                show: true
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: "yellow",
+                shadowBlur: 0,
+                shadowColor: "yellow"
+              }
+            },
+            zlevel: 1
           }
         ]
       },
@@ -110,8 +133,7 @@ export default {
       let centerPos = [];
       if (this.searchCity[0] === "全部") {
         amount = (await getMapInfo()).data.d;
-        this.option.geo.center = [];
-        this.option.geo.zoom = 1;
+        this.option.geo.zoom = 4;
       } else {
         amount = (await getOneMapInfo(this.searchCity[0])).data.d;
         centerPos.push(amount[0]["value"][0]);
@@ -119,14 +141,7 @@ export default {
         this.option.geo.center = centerPos;
         this.option.geo.zoom = 8;
       }
-      this.option.series = [
-        {
-          name: "设备分布", // series名称
-          type: "scatter", // series图表类型
-          coordinateSystem: "geo", // series坐标系类型
-          data: amount
-        }
-      ];
+      this.option.series[0].data = amount;
 
       let data = [];
       if (this.searchCity[0] === "全部") {
@@ -135,13 +150,11 @@ export default {
         console.log(this.searchCity);
         if (this.searchCity.length === 3 && this.searchCity[2] !== "全部") {
           console.log("search1");
-          data = (
-            await getDeviceByCity(
-              this.searchCity[0],
-              this.searchCity[1],
-              this.searchCity[2]
-            )
-          ).data.d;
+          data = (await getDeviceByCity(
+            this.searchCity[0],
+            this.searchCity[1],
+            this.searchCity[2]
+          )).data.d;
         } else if (
           (this.searchCity.length === 2 && this.searchCity[1] !== "全部") ||
           (this.searchCity.length === 3 && this.searchCity[2] === "全部")

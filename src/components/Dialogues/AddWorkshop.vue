@@ -106,7 +106,6 @@ export default {
     async getNewFactory(city) {
       if (city != "") {
         this.newFactoryList = (await getFactoryOptions(city)).data.d;
-        console.log(this.newFactoryList)
       }
       if (this.newFactoryList[0] != null) {
         this.workshopTable.factory = this.newFactoryList[0].value;

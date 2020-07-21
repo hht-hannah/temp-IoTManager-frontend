@@ -79,10 +79,6 @@
         <el-button type="primary" @click="update('updateData')">确 定</el-button>
       </div>
     </el-dialog>
-    <AddDeviceType
-      :deviceTypeAddVisible.sync="deviceTypeAddVisible"
-      :onClose="onChangeDeviceTypeClose"
-    ></AddDeviceType>
   </div>
 </template>
 
@@ -97,11 +93,10 @@ import {
   updateDeviceType
 } from "../../api/api";
 import { checkAuth } from "../../common/util";
-import AddDeviceType from "../../components/Dialogues/AddDeviceType";
+import  AddDeviceType  from "../../components/Dialogues/AddDeviceType";
 
 export default {
-  name: "DeviceTypeConfig",
-  components: { AddDeviceType },
+  name: "GatewayTypeConfig",
   data() {
     return {
       pageMode: 1,
@@ -111,12 +106,22 @@ export default {
       curSortColumn: "",
       curOrder: "",
       deviceType: [],
-      tableData: [],
+      tableData: [
+        {
+          deviceType: "测试1",
+          warningTime: "30min"
+        }
+      ],
       deviceTypeAddVisible: false,
       updateFormVisible: false,
       searchDeviceType: "",
       multipleSelection: [],
       updateData: {
+        id: 0,
+        deviceTypeName: "",
+        offlineTime: ""
+      },
+      newData: {
         id: 0,
         deviceTypeName: "",
         offlineTime: ""
@@ -231,6 +236,27 @@ export default {
       } catch (e) {
         console.log(e);
       }
+    },
+    async add(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          try {
+            const data = await addDeviceType(this.newData);
+            this.newFormVisible = false;
+            if (data.data.c === 200) {
+              this.$message({
+                message: "添加成功",
+                type: "success"
+              });
+              //再获取一次所有信息
+              this.getTableData();
+            }
+          } catch (e) {
+            this.newFormVisible = false;
+            this.$message.error("添加设备类型未成功");
+          }
+        }
+      });
     },
     async update(formName) {
       this.$refs[formName].validate(async valid => {

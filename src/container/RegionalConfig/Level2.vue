@@ -20,7 +20,6 @@
       <el-table
         v-loading="loading"
         :data="buildingData"
-        border
         style="width: 100%"
         @sort-change="factorySortChange"
       >

@@ -20,7 +20,6 @@
       <el-table
         v-loading="loading"
         :data="labData"
-        border
         style="width: 100%"
         @sort-change="workshopSortChange"
       >
@@ -64,55 +63,11 @@
     </div>
     <br />
 
-    <el-dialog :title="'修改'+GLOBAL.thirdLevel" :visible.sync="updateLabFormVisible">
-      <el-form :model="updateLabData" ref="updateLabData">
-        <el-form-item
-          :label="'所属'+GLOBAL.firstLevel"
-          prop="city"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.firstLevel+'不能为空'}]"
-        >
-          <el-select
-            v-model="updateLabData.city"
-            :placeholder="'选择'+GLOBAL.firstLevel"
-            @change="getUpdateBuildingList(updateLabData.city)"
-          >
-            <el-option v-for="c in cityList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="'所属'+GLOBAL.secondLevel"
-          prop="factory"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.secondLevel+'不能为空'}]"
-        >
-          <el-select v-model="updateLabData.factory" :placeholder="'选择'+GLOBAL.secondLevel">
-            <el-option v-for="c in buildingList" :key="c.value" :label="c.label" :value="c.label"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          :label="GLOBAL.thirdLevel"
-          prop="workshopName"
-          label-width="120px"
-          :rules="[{required: true, message: GLOBAL.thirdLevel+'不能为空'}]"
-        >
-          <el-input v-model="updateLabData.workshopName" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="电话" label-width="120px">
-          <el-input v-model="updateLabData.workshopPhoneNumber" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="地址" label-width="120px">
-          <el-input v-model="updateLabData.workshopAddress" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="备注" label-width="120px">
-          <el-input v-model="updateLabData.remark" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="updateLabFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="updateLab('updateLabData')">确 定</el-button>
-      </div>
-    </el-dialog>
+        <UpdateWorkshop
+      :workshopUpdateVisible.sync="workshopUpdateVisible"
+      :onClose="onChangeWorkshopClose"
+      :defaultData="updateWorkshopData"
+    ></UpdateWorkshop>
     <AddWorkshop :workshopAddVisible.sync="workshopAddVisible" :onClose="onChangeWorkshopClose"></AddWorkshop>
   </div>
 </template>
@@ -135,8 +90,12 @@ import {
   getNewFactory
 } from "../../api/api";
 import { checkAuth } from "../../common/util";
+import AddWorkshop from "../../components/Dialogues/AddWorkshop";
+import UpdateWorkshop from "../../components/Dialogues/UpdateWorkshop";
+
 export default {
   name: "level3",
+  components: { AddWorkshop, UpdateWorkshop },
   data() {
     return {
       loading: false,
@@ -149,16 +108,9 @@ export default {
       labData: [],
       changeWorkshopForm: "",
       labList: [],
-      updateLabFormVisible: false,
+      workshopUpdateVisible: false,
       workshopAddVisible: false,
-      updateLabData: {
-        workshopName: "",
-        workshopPhoneNumber: "",
-        workshopAddress: "",
-        factory: "",
-        city: "",
-        remark: ""
-      },
+      updateWorkshopData: [],
       updateBuildingData: {
         factoryName: "",
         factoryPhoneNumber: "",
@@ -187,9 +139,9 @@ export default {
     async getUpdateLabList(city) {
       this.LabList = (await getWorkshopOptions(city)).data.d;
       if (this.LabList[0] != null) {
-        this.updateLabData.workshopName = this.labList[0].value;
+        this.updateWorkshopData.workshopName = this.labList[0].value;
       } else {
-        this.updateLabData.workshopName = "";
+        this.updateWorkshopData.workshopName = "";
         this.labList = [];
       }
     },
@@ -236,36 +188,11 @@ export default {
       this.workshopCurOrder = ob.order;
       this.getWorkshop();
     },
-
-    async updateLab(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          try {
-            const data = await updateWorkshop(
-              this.updateLabData.id,
-              this.updateLabData
-            );
-            this.updateLabFormVisible = false;
-            if (data.data.c === 200) {
-              this.$message({
-                message: "更新成功",
-                type: "success"
-              });
-              //再获取一次所有实验室信息
-              this.getWorkshop();
-            }
-          } catch (e) {
-            this.updateLabFormVisible = false;
-            this.$message.error("更新实验室未成功");
-          }
-        }
-      });
-    },
     async openLabUpdateForm(row) {
       //打开实验室更新表单
-      this.updateLabData = JSON.parse(JSON.stringify(row));
-      this.updateLabFormVisible = true;
-      this.getUpdateBuildingList(this.updateLabData.city);
+      this.updateWorkshopData = JSON.parse(JSON.stringify(row));
+      this.workshopUpdateVisible = true;
+      this.getUpdateBuildingList(this.updateWorkshopData.city);
     },
     async deleteLab(row) {
       const affiliateDevice = (await getWorkshopAffiliateDevice(row.id)).data.d;
